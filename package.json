@@ -9,12 +9,19 @@
   "devDependencies": {
     "@sveltejs/adapter-node": "next",
     "@sveltejs/kit": "next",
+    "@types/three": "^0.140.0",
     "svelte": "^3.44.2"
   },
   "type": "module",
   "dependencies": {
     "@fontsource/fira-mono": "^4.2.2",
     "@lukeed/uuid": "^2.0.0",
-    "cookie": "^0.4.1"
+    "cookie": "^0.4.1",
+    "socket.io": "^4.5.1",
+    "socket.io-client": "^4.5.1",
+    "svelte-cubed": "^0.2.1",
+    "svelte-preprocess": "^4.10.6",
+    "three": "^0.141.0",
+    "typescript": "^4.6.4"
   }
 }
