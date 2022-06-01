@@ -25,10 +25,33 @@ export enum GameState {
   GameOver = 'gameOver',
 }
 
+enum Directions {
+  Up = 0b0001,
+  Down = 0b0010,
+  Left = 0b0100,
+  Right = 0b1000,
+}
+
+enum Keys {
+  'w' = Directions.Up,
+  'ArrowUp' = Directions.Up,
+  's' = Directions.Down,
+  'ArrowDown' = Directions.Down,
+  'a' = Directions.Left,
+  'ArrowLeft' = Directions.Left,
+  'd' = Directions.Right,
+  'ArrowRight' = Directions.Right,
+}
+
 export const playerR = 10;
 export const boardR = 100;
 
-export const gameStore = writable<GameStore>({ players: [], lost: [], state: GameState.Lobby });
+export const gameStore = writable<GameStore>({
+  players: [],
+  lost: [],
+  state: GameState.Lobby,
+});
+
 const keyStates = new Map<string, number>();
 
 const handleMessage = (peerId: string, type: string, data: any) => {
@@ -51,11 +74,14 @@ const clamp = (val: number, min: number, max: number) => Math.min(max, Math.max(
 
 const maxV = 1.5;
 const accel = 0.1;
+const drag = 0.95;
 
 const updateVelocity = player => {
   const dir = keyStates.get(player.id) ?? 0;
   const dx = (dir & Directions.Left ? -accel : 0) + (dir & Directions.Right ? accel : 0);
   const dy = (dir & Directions.Up ? -accel : 0) + (dir & Directions.Down ? accel : 0);
+
+  // normalize speed of diagonal movement
   const angleCorrection = dx !== 0 && dy !== 0 ? 0.707 : 1;
   player.vx = clamp(player.vx + dx * angleCorrection, -maxV, maxV);
   player.vy = clamp(player.vy + dy * angleCorrection, -maxV, maxV);
@@ -75,8 +101,8 @@ export const update = () => {
         }
         p.x += p.vx;
         p.y += p.vy;
-        p.vx *= 0.95;
-        p.vy *= 0.95;
+        p.vx *= drag;
+        p.vy *= drag;
 
         return { ...p, skip: [p.id] };
       })
@@ -128,24 +154,6 @@ export const update = () => {
   }
 };
 
-enum Directions {
-  Up = 0b0001,
-  Down = 0b0010,
-  Left = 0b0100,
-  Right = 0b1000,
-}
-
-enum Keys {
-  'w' = Directions.Up,
-  'ArrowUp' = Directions.Up,
-  's' = Directions.Down,
-  'ArrowDown' = Directions.Down,
-  'a' = Directions.Left,
-  'ArrowLeft' = Directions.Left,
-  'd' = Directions.Right,
-  'ArrowRight' = Directions.Right,
-}
-
 export const handleKeyDown = (playerId: string, key: string) => {
   if (!get(isHost)) {
     return sendToAll('keydown', key);
@@ -167,11 +175,13 @@ const handleGameStore = (state: GameStore) => {
 export const startGame = () => {
   keyStates.clear();
   if (get(isHost)) {
+    const tau = Math.PI * 2;
+    const angleOffset = Math.random() * tau;
     gameStore.set({
       lost: [],
       state: GameState.InGame,
       players: get(players).map(({ id, name, color }, i, { length }) => {
-        const angle = ((Math.PI * 2) / length) * i;
+        const angle = (tau / length) * i + angleOffset;
         const dist = boardR - playerR * 2;
         return {
           id,

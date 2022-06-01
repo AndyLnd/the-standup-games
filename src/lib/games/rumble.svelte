@@ -24,7 +24,7 @@
 {#if $gameStore.state === GameState.GameOver}
   <div class="gameover-list">
     {#each $gameStore.lost as name, i}
-      <div class="name" style="--size: {(i / $gameStore.lost.length) * 3 + 3}rem">{name}</div>
+      <div class="name" style="--size: {(i / $gameStore.lost.length) * 1 + 2}rem">{name}</div>
     {/each}
   </div>
 {/if}
@@ -73,5 +73,6 @@
 
   .name {
     font-size: var(--size);
+    line-height: 3rem;
   }
 </style>

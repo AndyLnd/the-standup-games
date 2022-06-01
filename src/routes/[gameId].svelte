@@ -37,46 +37,90 @@
 {#if $gameStore.state !== GameState.Lobby}
   <Rumble />
 {:else}
-  {#if $isHost}
-    <p>You are hosting</p>
-  {/if}
-  <div class="setup">
-    <input disabled={$isReady} bind:value={userColor} type="color" on:input={() => setUserColor(userColor)} />
-    <input disabled={$isReady} bind:value={userName} maxlength="8" on:input={() => setUserName(userName)} />
-    <button
-      disabled={userName.trim().length === 0}
-      class:isReady={$isReady}
-      on:click={() => setProp('ready', !$isReady)}>{$isReady ? 'Wait, wait!' : "Let's go!"}</button
-    >
-  </div>
+  <section>
+    <h2>Join Game</h2>
+    <div class="setup">
+      <input disabled={$isReady} bind:value={userColor} type="color" on:input={() => setUserColor(userColor)} />
+      <input autofocus disabled={$isReady} bind:value={userName} maxlength="8" on:input={() => setUserName(userName)} />
+      <button
+        disabled={userName.trim().length === 0}
+        class:isReady={$isReady}
+        on:click={() => setProp('ready', !$isReady)}>{$isReady ? 'Wait, wait!' : "Let's go!"}</button
+      >
+    </div>
 
-  <div class="player-list">
-    {#each $players as player (player.id)}
-      <div class="player">
-        <div class="ready">{player.ready ? '✅' : '❓'}</div>
-        <div class="color" style="background-color: {player.color}" />
-        <div>{player.name}</div>
-      </div>
-    {/each}
-  </div>
+    <div class="player-list">
+      {#each $players as player (player.id)}
+        <div class="player" class:playerready={player.ready}>
+          <div class="ready">{player.ready ? '✅' : '❓'}</div>
+          <div class="color" style="background-color: {player.color}" />
+          <div>{player.name}</div>
+        </div>
+      {/each}
+    </div>
 
-  {#if $isHost}
-    <button disabled={$players.some(p => !p.ready)} on:click={start}>Start</button>
-  {/if}
+    {#if $isHost}
+      {#if $players.some(p => !p.ready)}
+        <button disabled>Waiting ...</button>
+      {:else}<button on:click={start}>Start</button>{/if}
+    {/if}
+  </section>
 {/if}
 
 <style>
+  section {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 2rem;
+  }
+  section > * {
+    min-width: 400px;
+    margin: 1rem auto;
+  }
+  h2 {
+    text-align: center;
+  }
   .player-list {
     display: flex;
     flex-direction: column;
   }
   .player {
+    margin: 0.2rem;
+    border: 1px solid white;
+    padding: 0.2rem;
+    border-radius: 0.2rem;
     display: flex;
     align-items: center;
+  }
+  .playerready {
+    background: rgba(0, 255, 0, 0.1);
   }
 
   .setup {
     display: flex;
+    justify-content: center;
+  }
+
+  .setup input {
+    color: black;
+    height: 100%;
+    padding: 0;
+    border: 0;
+  }
+  .setup input:first-of-type {
+    border-top-left-radius: 0.2rem;
+    border-bottom-left-radius: 0.2rem;
+    padding: 0 0.25rem 0 0.2rem;
+  }
+  .setup input:nth-child(2) {
+    padding-left: 0.25rem;
+  }
+
+  .setup button {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    width: 5rem;
   }
 
   .ready {
@@ -92,7 +136,11 @@
   }
 
   button {
+    cursor: pointer;
+    border-radius: 0.2rem;
     background-color: rgb(95, 172, 95);
+    border: none;
+    padding: 0.5rem;
   }
 
   button.isReady {

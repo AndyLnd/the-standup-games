@@ -1,17 +1,19 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
-   const hostNewGame = () => {
+  import { goto } from '$app/navigation';
+  import Logo from '$lib/Logo.svelte';
+  const hostNewGame = () => {
     const name = Math.random().toString(36).substring(2);
     goto(`/${name}`);
   };
 </script>
 
 <svelte:head>
-  <title>Home</title>
+  <title>The Standup Games</title>
 </svelte:head>
 
 <section>
-  <button on:click={() => hostNewGame()}>Host game</button>
+  <Logo />
+  <button on:click={() => hostNewGame()}>Host Game</button>
 </section>
 
 <style>
@@ -21,5 +23,16 @@
     justify-content: center;
     align-items: center;
     flex: 1;
+    height: 100%;
   }
+  button {
+    cursor: pointer;
+    font-size: 2rem;
+    background-color: black;
+    color: white;
+    border: 1px solid white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+  }
+
 </style>
