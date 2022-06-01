@@ -1,6 +1,5 @@
 /** @type {import('@sveltejs/kit').Config} */
 
-import { resolve } from 'path';
 import preprocess from 'svelte-preprocess';
 import node from '@sveltejs/adapter-node';
 import gameServer from './gameserver.js';
@@ -19,16 +18,10 @@ const config = {
         {
           name: 'multiplayer',
           configureServer(server) {
-            gameServer(server);
+            gameServer(server.httpServer);
           },
         },
       ],
-      resolve: {
-        alias: {
-          $lib: resolve('./src/lib'),
-          $app: resolve('./.svelte-kit/runtime/app'),
-        },
-      },
     },
   },
 };

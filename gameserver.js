@@ -5,7 +5,7 @@ const lobbies = new Map();
 const users = new Map();
 
 export default server => {
-  const io = new Server(server.httpServer);
+  const io = new Server(server);
   io.on('connection', socket => {
     const sendToLobby = (...params) => {
       io.to(socket.data.room).emit(...params);
@@ -43,7 +43,7 @@ export default server => {
       socket.data.color = color;
       broadcastLobbyUpdate();
     });
-    
+
     socket.on(LobbyMessages.SetReady, ready => {
       socket.data.ready = ready;
       broadcastLobbyUpdate();
