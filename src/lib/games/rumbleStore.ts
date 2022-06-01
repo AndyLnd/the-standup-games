@@ -1,6 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { isHost, players } from '../lobby';
-import { sendToAll, setOnPeerRTCMessage } from '$lib/webRtc';
+import { sendToAll, setOnPeerRTCMessage } from '../../lib/webRtc';
 
 interface PlayerStore {
   name: string;

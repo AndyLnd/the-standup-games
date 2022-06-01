@@ -43,19 +43,19 @@
     dominant-baseline: middle;
     text-shadow: 0 0 0.3rem white;
   }
+
   .disc {
     opacity: 0.5;
     filter: blur(1px);
     transition: all linear 0.5s;
   }
-
-  .disc > circle {
-    filter: drop-shadow(0.05rem 0.1rem 0.1rem rgba(0, 0, 0, 0.3));
-  }
-
   .disc.isAlive {
     opacity: 1;
     filter: none;
+  }
+
+  .disc > circle {
+    filter: drop-shadow(0.05rem 0.1rem 0.1rem rgba(0, 0, 0, 0.3));
   }
 
   .gameover-list {
@@ -70,6 +70,7 @@
     align-items: center;
     background-color: rgba(0, 0, 0, 0.7);
   }
+
   .name {
     font-size: var(--size);
   }

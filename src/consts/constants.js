@@ -1,12 +1,7 @@
 export const LobbyMessages = {
-  InitGame: 'initGame',
-  SetName: 'setName',
-  SetColor: 'setColor',
-  SetReady: 'setReady',
+  JoinRoom: 'joinRoom',
+  SetProp: 'setProp',
   UpdateLobby: 'updateLobby',
-  PlayerJoin: 'playerJoin',
-  PlayerLeave: 'playerLeave',
-  PlayerReady: 'playerReady',
 };
 
 export const IceMessages = {

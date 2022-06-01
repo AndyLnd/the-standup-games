@@ -5,7 +5,7 @@ import { players, socket } from './lobby';
 interface Connection {
   connection: RTCPeerConnection;
   sendChannel: RTCDataChannel;
-  receiveChannel?: RTCDataChannel;
+  id: string;
 }
 
 type PeerMessageHandler = (peerId: string, type: string, message: any) => void;
@@ -13,28 +13,35 @@ type PeerMessageHandler = (peerId: string, type: string, message: any) => void;
 const connections = new Map<string, Connection>();
 
 const peerConnectionConfig = {
-  iceServers: [{ urls: 'stun:stun.stunprotocol.org:3478' }, { urls: 'stun:stun.l.google.com:19302' }],
+  iceServers: [
+    {
+      urls: [
+        'stun:stun.l.google.com:19302',
+        'stun:stun1.l.google.com:19302',
+        'stun:stun2.l.google.com:19302',
+        'stun:stun.l.google.com:19302?transport=udp',
+      ],
+    },
+  ],
 };
 
 let onPeerRTCMessage: PeerMessageHandler = () => {};
 export const setOnPeerRTCMessage = (peerMessageHandler: PeerMessageHandler) => (onPeerRTCMessage = peerMessageHandler);
 
-const estPeerConnection = async (remoteId: string, isCaller = true): Promise<Connection> => {
+const estPeerConnection = async (peerId: string, isCaller = true): Promise<Connection> => {
   const connection = new RTCPeerConnection(peerConnectionConfig);
   const sendChannel = connection.createDataChannel('sendChannel');
-  let receiveChannel: RTCDataChannel | undefined = undefined;
 
   connection.ondatachannel = ev => {
-    receiveChannel = ev.channel;
-    receiveChannel.onmessage = message => {
+    ev.channel.onmessage = message => {
       const { type, data } = parseMessage(message.data);
-      onPeerRTCMessage(remoteId, type, data);
+      onPeerRTCMessage(peerId, type, data);
     };
   };
 
   connection.onicecandidate = ev => {
     if (ev.candidate) {
-      socket.emit(IceMessages.Candidate, remoteId, ev.candidate);
+      socket.emit(IceMessages.Candidate, peerId, ev.candidate);
     }
   };
 
@@ -42,40 +49,51 @@ const estPeerConnection = async (remoteId: string, isCaller = true): Promise<Con
     try {
       const offer = await connection.createOffer();
       await connection.setLocalDescription(offer);
-      socket.emit(IceMessages.Offer, remoteId, offer);
+      socket.emit(IceMessages.Offer, peerId, offer);
     } catch (e) {
       console.log(e);
     }
   }
 
-  return { connection, sendChannel, receiveChannel };
+  return { connection, sendChannel, id: peerId };
+};
+
+const waitForConnected = (connection: RTCPeerConnection) =>
+  new Promise<void>(resolve => {
+    connection.onconnectionstatechange = () => {
+      if (connection.connectionState === 'connected') {
+        resolve();
+      }
+    };
+  });
+
+const waitForSendOpen = (sendChannel: RTCDataChannel) =>
+  new Promise<void>(resolve => {
+    sendChannel.onopen = () => resolve();
+  });
+
+const sendOffer = async ({ connection, id }: Connection) => {
+  try {
+    const offer = await connection.createOffer();
+    await connection.setLocalDescription(offer);
+    socket.emit(IceMessages.Offer, id, offer);
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 export const connectAsHost = async () => {
   const otherPlayers = get(players).filter(player => player.id !== socket.id);
-  const conns = await Promise.all(otherPlayers.map(async player => estPeerConnection(player.id)));
-  conns.forEach((conn, i) => connections.set(otherPlayers[i].id, conn));
+  const conns = await Promise.all(otherPlayers.map(player => estPeerConnection(player.id)));
+
+  conns.forEach((conn, i) => {
+    sendOffer(conn);
+    connections.set(otherPlayers[i].id, conn);
+  });
+
   await Promise.all([
-    Promise.all(
-      conns.map(
-        ({ connection }) =>
-          new Promise<void>(resolve => {
-            connection.onconnectionstatechange = () => {
-              if (connection.connectionState === 'connected') {
-                resolve();
-              }
-            };
-          })
-      )
-    ),
-    Promise.all(
-      conns.map(
-        ({ sendChannel }) =>
-          new Promise<void>(resolve => {
-            sendChannel.onopen = () => resolve();
-          })
-      )
-    ),
+    ...conns.map(({ connection }) => waitForConnected(connection)),
+    ...conns.map(({ sendChannel }) => waitForSendOpen(sendChannel)),
   ]);
   console.log('done');
 };
@@ -89,30 +107,34 @@ const ensureConnection = async (id: string) => {
   return peerConnection;
 };
 
-socket.on(IceMessages.Candidate, async (remoteId: string, candidate: RTCIceCandidateInit) => {
-  if (remoteId === socket.id) return;
-  const peerConnection = (await ensureConnection(remoteId)).connection;
+socket.on(IceMessages.Candidate, async (peerId: string, candidate: RTCIceCandidateInit) => {
+  if (peerId === socket.id) return;
+  const peerConnection = (await ensureConnection(peerId)).connection;
   peerConnection.addIceCandidate(new RTCIceCandidate(candidate)).catch(console.log);
 });
 
-socket.on(IceMessages.Offer, async (remoteId: string, description: RTCSessionDescriptionInit) => {
-  if (remoteId === socket.id) return;
-  const peerConnection = (await ensureConnection(remoteId)).connection;
+socket.on(IceMessages.Offer, async (peerId: string, description: RTCSessionDescriptionInit) => {
+  if (peerId === socket.id) return;
+  const peerConnection = (await ensureConnection(peerId)).connection;
   try {
     peerConnection.setRemoteDescription(new RTCSessionDescription(description));
     const descriptionInit = await peerConnection.createAnswer();
     await peerConnection.setLocalDescription(descriptionInit);
-    socket.emit(IceMessages.Answer, remoteId, descriptionInit);
+    socket.emit(IceMessages.Answer, peerId, descriptionInit);
   } catch (e) {
     console.log(e);
   }
 });
 
-socket.on(IceMessages.Answer, async (remoteId: string, description: RTCSessionDescriptionInit) => {
-  if (remoteId === socket.id) return;
-  const peerConnection = (await ensureConnection(remoteId)).connection;
+socket.on(IceMessages.Answer, async (peerId: string, description: RTCSessionDescriptionInit) => {
+  if (peerId === socket.id) return;
+  const peerConnection = (await ensureConnection(peerId)).connection;
   peerConnection.setRemoteDescription(new RTCSessionDescription(description));
 });
+
+/**
+ * Communication via
+ */
 
 export const sendTo = (toId: string, message: string) => {
   connections.get(toId)?.sendChannel.send(message);

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { browser } from '$app/env';
-  import { players, initGame, setName, setColor, setReady, isReady, isHost } from '$lib/lobby';
+  import { players, joinRoom, setProp, isReady, isHost } from '$lib/lobby';
   import { connectAsHost } from '$lib/webRtc';
   import { GameState, gameStore, startGame } from '$lib/games/rumbleStore';
   import Rumble from '$lib/games/rumble.svelte';
@@ -12,20 +12,20 @@
 
   const setUserName = (name: string) => {
     localStorage.setItem('userName', name);
-    setName(name);
+    setProp('name', name);
   };
 
   const setUserColor = (color: string) => {
     localStorage.setItem('userColor', color);
-    setColor(color);
+    setProp('color', color);
   };
 
   if (browser) {
     userName = localStorage.getItem('userName') || 'Guest';
     userColor = localStorage.getItem('userColor') || `#${Math.random().toString(16).substring(2, 8)}`;
     setUserName(userName);
-    setColor(userColor);
-    initGame(userName, gameId);
+    setUserColor(userColor);
+    joinRoom(gameId, { name: userName, color: userColor, ready: false });
   }
 
   const start = async () => {
@@ -43,15 +43,17 @@
   <div class="setup">
     <input disabled={$isReady} bind:value={userColor} type="color" on:input={() => setUserColor(userColor)} />
     <input disabled={$isReady} bind:value={userName} maxlength="8" on:input={() => setUserName(userName)} />
-    <button disabled={userName.trim().length === 0} class:isReady={$isReady} on:click={() => setReady(!$isReady)}
-      >{$isReady ? 'Wait, wait!' : "Let's go!"}</button
+    <button
+      disabled={userName.trim().length === 0}
+      class:isReady={$isReady}
+      on:click={() => setProp('ready', !$isReady)}>{$isReady ? 'Wait, wait!' : "Let's go!"}</button
     >
   </div>
 
   <div class="player-list">
     {#each $players as player (player.id)}
       <div class="player">
-        <div class="ready">{player.isReady ? '✅' : '❓'}</div>
+        <div class="ready">{player.ready ? '✅' : '❓'}</div>
         <div class="color" style="background-color: {player.color}" />
         <div>{player.name}</div>
       </div>
@@ -59,7 +61,7 @@
   </div>
 
   {#if $isHost}
-    <button disabled={$players.some(p => !p.isReady)} on:click={start}>Start</button>
+    <button disabled={$players.some(p => !p.ready)} on:click={start}>Start</button>
   {/if}
 {/if}
 
