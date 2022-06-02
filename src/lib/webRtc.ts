@@ -1,6 +1,7 @@
 import { get } from 'svelte/store';
 import { IceMessages } from '../consts/constants';
 import { players, socket } from './lobby';
+import iceServers from './iceServers'
 
 interface Connection {
   connection: RTCPeerConnection;
@@ -12,34 +13,11 @@ type PeerMessageHandler = (peerId: string, type: string, message: any) => void;
 
 const connections = new Map<string, Connection>();
 
-const peerConnectionConfig = {
-  iceServers: [
-    {
-      urls: 'stun:openrelay.metered.ca:80',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
-    },
-  ],
-};
-
 let onPeerRTCMessage: PeerMessageHandler = () => {};
 export const setOnPeerRTCMessage = (peerMessageHandler: PeerMessageHandler) => (onPeerRTCMessage = peerMessageHandler);
 
 const estPeerConnection = async (peerId: string, isCaller = true): Promise<Connection> => {
-  const connection = new RTCPeerConnection(peerConnectionConfig);
+  const connection = new RTCPeerConnection({iceServers});
   const sendChannel = connection.createDataChannel('sendChannel');
 
   connection.ondatachannel = ev => {
