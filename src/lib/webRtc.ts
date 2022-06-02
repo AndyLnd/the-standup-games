@@ -15,12 +15,7 @@ const connections = new Map<string, Connection>();
 const peerConnectionConfig = {
   iceServers: [
     {
-      urls: [
-        'stun:stun.l.google.com:19302',
-        'stun:stun1.l.google.com:19302',
-        'stun:stun2.l.google.com:19302',
-        'stun:stun.l.google.com:19302?transport=udp',
-      ],
+      urls: 'stun:openrelay.metered.ca:80',
     },
     {
       urls: 'turn:openrelay.metered.ca:80',
@@ -29,6 +24,11 @@ const peerConnectionConfig = {
     },
     {
       urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443?transport=tcp',
       username: 'openrelayproject',
       credential: 'openrelayproject',
     },
