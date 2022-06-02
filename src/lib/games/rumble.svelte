@@ -1,21 +1,29 @@
 <script lang="ts">
   import { id } from '$lib/lobby';
-  import { gameStore, handleKeyDown, handleKeyUp, update, boardR, playerR, GameState } from './rumbleStore';
+  import { gameStore, handleKeyDown, handleKeyUp, update, boardR, playerR, GameState, kickRadius } from './rumbleStore';
   import { onMount } from 'svelte';
   onMount(() => {
     update();
   });
   const size = (boardR + playerR) * 2;
   const offset = size / 2;
+  const getRadius = (c: number) => (c > 15 ? playerR : ((Math.min(0, c - 15) / -15) * kickRadius + 1) * playerR);
 </script>
 
 <svelte:body on:keydown={({ key }) => handleKeyDown(id(), key)} on:keyup={ev => handleKeyUp(id(), ev.key)} />
 
 <svg viewBox="0 0 {size} {size}" xmlns="http://www.w3.org/2000/svg">
   <circle r={boardR} cx={offset} cy={offset} fill="#797b82" stroke="rgba(255,128,128,.2)" stroke-width="3px" />
-  {#each $gameStore.players as { color, name, x, y, id, isAlive } (id)}
+  {#each $gameStore.players as { color, name, x, y, id, isAlive, charge } (id)}
     <g class="disc" class:isAlive>
-      <circle cx={x + offset} cy={y + offset} r={playerR} fill={color} stroke="rgba(0,0,0,.2)" stroke-width="1px" />
+      <circle
+        cx={x + offset}
+        cy={y + offset}
+        r={getRadius(charge)}
+        fill={color}
+        stroke="rgba(0,0,0,.2)"
+        stroke-width="1px"
+      />
       <text x={x + offset} y={y + offset}>{name}</text>
     </g>
   {/each}
@@ -47,7 +55,7 @@
   .disc {
     opacity: 0.5;
     filter: blur(1px);
-    transition: all linear 0.5s;
+    transition: opacity linear 0.5s, filter linear 0.5s;
   }
   .disc.isAlive {
     opacity: 1;

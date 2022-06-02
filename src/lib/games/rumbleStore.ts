@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store';
-import { isHost, players } from '../lobby';
+import { id, isHost, players } from '../lobby';
 import { sendToAll, setOnPeerRTCMessage } from '../../lib/webRtc';
 
 interface PlayerStore {
@@ -11,6 +11,7 @@ interface PlayerStore {
   vx: number;
   vy: number;
   isAlive: boolean;
+  charge: number;
 }
 
 interface GameStore {
@@ -70,9 +71,6 @@ const handleMessage = (peerId: string, type: string, data: any) => {
 
 setOnPeerRTCMessage(handleMessage);
 
-const clamp = (val: number, min: number, max: number) => Math.min(max, Math.max(min, val));
-
-const maxV = 1.5;
 const accel = 0.1;
 const drag = 0.95;
 
@@ -83,10 +81,39 @@ const updateVelocity = player => {
 
   // normalize speed of diagonal movement
   const angleCorrection = dx !== 0 && dy !== 0 ? 0.707 : 1;
-  player.vx = clamp(player.vx + dx * angleCorrection, -maxV, maxV);
-  player.vy = clamp(player.vy + dy * angleCorrection, -maxV, maxV);
+  player.vx = player.vx + dx * angleCorrection;
+  player.vy = player.vy + dy * angleCorrection;
 };
 
+export const kickRadius = 0.2;
+export const kickPower = 1.5;
+const handleKick = (playerId: string) => {
+  gameStore.update(({ players, ...p }) => {
+    const op = players.find(p => p.id === playerId)!;
+    if (op.charge < maxCharge) return { players, ...p };
+    op.charge = 0;
+    const saveDist = playerR * kickRadius + playerR * 2;
+    const updatedPlayers = players.map(p => {
+      if (p === op) return p;
+      const dx = op.x - p.x;
+      const dy = op.y - p.y;
+
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist >= saveDist) return p;
+
+      const ϕ = Math.atan2(dy, dx);
+      const dvx = Math.cos(ϕ) * kickPower;
+      const dvy = Math.sin(ϕ) * kickPower;
+      p.vx -= dvx;
+      p.vy -= dvy;
+
+      return p;
+    });
+    return { players: updatedPlayers, ...p };
+  });
+};
+
+const maxCharge = 120;
 export const update = () => {
   requestAnimationFrame(update);
   if (get(gameStore).state !== GameState.InGame) return;
@@ -103,6 +130,10 @@ export const update = () => {
         p.y += p.vy;
         p.vx *= drag;
         p.vy *= drag;
+
+        if (p.charge < maxCharge) {
+          p.charge++;
+        }
 
         return { ...p, skip: [p.id] };
       })
@@ -158,6 +189,9 @@ export const handleKeyDown = (playerId: string, key: string) => {
   if (!get(isHost)) {
     return sendToAll('keydown', key);
   }
+  if (key === ' ') {
+    handleKick(playerId);
+  }
   keyStates.set(playerId, (keyStates.get(playerId) ?? 0) | Keys[key as keyof typeof Keys]);
 };
 
@@ -192,6 +226,7 @@ export const startGame = () => {
           vx: 0,
           vy: 0,
           isAlive: true,
+          charge: maxCharge,
         };
       }),
     });
