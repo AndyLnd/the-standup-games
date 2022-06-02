@@ -3,7 +3,7 @@
 </script>
 
 <svelte:head>
-  <title>Rumble</title>
+  <title>The Standup Games</title>
 </svelte:head>
 
 <main>
