@@ -1,7 +1,7 @@
 import { get } from 'svelte/store';
 import { IceMessages } from '../consts/constants';
 import { players, socket } from './lobby';
-import iceServers from './iceServers'
+import iceServers from './iceServers';
 
 interface Connection {
   connection: RTCPeerConnection;
@@ -16,8 +16,8 @@ const connections = new Map<string, Connection>();
 let onPeerRTCMessage: PeerMessageHandler = () => {};
 export const setOnPeerRTCMessage = (peerMessageHandler: PeerMessageHandler) => (onPeerRTCMessage = peerMessageHandler);
 
-const estPeerConnection = async (peerId: string, isCaller = true): Promise<Connection> => {
-  const connection = new RTCPeerConnection({iceServers});
+const estPeerConnection = async (peerId: string): Promise<Connection> => {
+  const connection = new RTCPeerConnection({ iceServers });
   const sendChannel = connection.createDataChannel('sendChannel');
 
   connection.ondatachannel = ev => {
@@ -33,34 +33,29 @@ const estPeerConnection = async (peerId: string, isCaller = true): Promise<Conne
     }
   };
 
-  if (isCaller) {
-    try {
-      const offer = await connection.createOffer();
-      await connection.setLocalDescription(offer);
-      socket.emit(IceMessages.Offer, peerId, offer);
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
   return { connection, sendChannel, id: peerId };
 };
 
-const waitForConnected = (connection: RTCPeerConnection) =>
-  new Promise<void>(resolve => {
+const waitForConnected = (connection: RTCPeerConnection) => {
+  if (connection.connectionState === 'connected') return;
+  return new Promise<void>(resolve => {
     connection.onconnectionstatechange = () => {
       if (connection.connectionState === 'connected') {
         resolve();
       }
     };
   });
+};
 
-const waitForSendOpen = (sendChannel: RTCDataChannel) =>
-  new Promise<void>(resolve => {
+const waitForSendOpen = (sendChannel: RTCDataChannel) => {
+  if (sendChannel.readyState === 'open') return;
+  return new Promise<void>(resolve => {
     sendChannel.onopen = () => resolve();
   });
+};
 
 const sendOffer = async ({ connection, id }: Connection) => {
+  if (connection.connectionState === 'connected') return;
   try {
     const offer = await connection.createOffer();
     await connection.setLocalDescription(offer);
@@ -72,12 +67,8 @@ const sendOffer = async ({ connection, id }: Connection) => {
 
 export const connectAsHost = async () => {
   const otherPlayers = get(players).filter(player => player.id !== socket.id);
-  const conns = await Promise.all(otherPlayers.map(player => estPeerConnection(player.id)));
-
-  conns.forEach((conn, i) => {
-    sendOffer(conn);
-    connections.set(otherPlayers[i].id, conn);
-  });
+  const conns = await Promise.all(otherPlayers.map(player => ensureConnection(player.id)));
+  connections.forEach(conn => sendOffer(conn));
 
   await Promise.all([
     ...conns.map(({ connection }) => waitForConnected(connection)),
@@ -89,7 +80,7 @@ export const connectAsHost = async () => {
 const ensureConnection = async (id: string) => {
   let peerConnection = connections.get(id);
   if (!peerConnection) {
-    peerConnection = await estPeerConnection(id, false);
+    peerConnection = await estPeerConnection(id);
     connections.set(id, peerConnection);
   }
   return peerConnection;

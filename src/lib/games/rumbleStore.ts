@@ -1,7 +1,8 @@
 import { get, writable } from 'svelte/store';
-import { id, isHost, players } from '../lobby';
 import { sendToAll, setOnPeerRTCMessage } from '../../lib/webRtc';
+import { Player } from '../lobby';
 
+let isHost = false;
 interface PlayerStore {
   name: string;
   color: string;
@@ -34,13 +35,13 @@ enum Directions {
 }
 
 enum Keys {
-  'w' = Directions.Up,
+  'KeyW' = Directions.Up,
   'ArrowUp' = Directions.Up,
-  's' = Directions.Down,
+  'KeyS' = Directions.Down,
   'ArrowDown' = Directions.Down,
-  'a' = Directions.Left,
+  'KeyA' = Directions.Left,
   'ArrowLeft' = Directions.Left,
-  'd' = Directions.Right,
+  'KeyD' = Directions.Right,
   'ArrowRight' = Directions.Right,
 }
 
@@ -114,16 +115,16 @@ const handleKick = (playerId: string) => {
 };
 
 const maxCharge = 120;
+let rafId = 0;
 export const update = () => {
-  requestAnimationFrame(update);
+  cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(update);
   if (get(gameStore).state !== GameState.InGame) return;
-
-  const host = get(isHost);
 
   gameStore.update(({ players, lost, ...gs }) => {
     const updatedPlayers = players
       .map(p => {
-        if (host && p.isAlive) {
+        if (isHost && p.isAlive) {
           updateVelocity(p);
         }
         p.x += p.vx;
@@ -176,7 +177,7 @@ export const update = () => {
     return { ...gs, players: updatedPlayers, lost };
   });
 
-  if (host) {
+  if (isHost) {
     const gs = get(gameStore);
     sendToAll('gamestate', gs);
     if (gs.players.filter(p => p.isAlive).length < 2) {
@@ -186,17 +187,17 @@ export const update = () => {
 };
 
 export const handleKeyDown = (playerId: string, key: string) => {
-  if (!get(isHost)) {
+  if (!isHost) {
     return sendToAll('keydown', key);
   }
-  if (key === ' ') {
+  if (key === 'Space') {
     handleKick(playerId);
   }
   keyStates.set(playerId, (keyStates.get(playerId) ?? 0) | Keys[key as keyof typeof Keys]);
 };
 
 export const handleKeyUp = (playerId: string, key: string) => {
-  if (!get(isHost)) {
+  if (!isHost) {
     return sendToAll('keyup', key);
   }
   keyStates.set(playerId, (keyStates.get(playerId) ?? 0) & ~Keys[key as keyof typeof Keys]);
@@ -206,15 +207,16 @@ const handleGameStore = (state: GameStore) => {
   gameStore.set(state);
 };
 
-export const startGame = () => {
+export const startGame = ({ players }: { players: Player[] }) => {
+  isHost = true;
   keyStates.clear();
-  if (get(isHost)) {
+  if (isHost) {
     const tau = Math.PI * 2;
     const angleOffset = Math.random() * tau;
     gameStore.set({
       lost: [],
       state: GameState.InGame,
-      players: get(players).map(({ id, name, color }, i, { length }) => {
+      players: players.map(({ id, name, color }, i, { length }) => {
         const angle = (tau / length) * i + angleOffset;
         const dist = boardR - playerR * 2;
         return {
@@ -230,7 +232,7 @@ export const startGame = () => {
         };
       }),
     });
-    get(players).forEach(({ id }) => keyStates.set(id, 0));
+    players.forEach(({ id }) => keyStates.set(id, 0));
     sendToAll('gamestate', get(gameStore));
   }
   gameOverScheduled = false;
@@ -248,4 +250,9 @@ const scheduleGameOver = () => {
     });
     sendToAll('gamestate', get(gameStore));
   }, 2000);
+};
+
+export const reset = () => {
+  gameStore.update(gs => ({ ...gs, state: GameState.Lobby }));
+  sendToAll('gamestate', get(gameStore));
 };

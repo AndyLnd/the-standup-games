@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { browser } from '$app/env';
-  import { players, joinRoom, setProp, isReady, isHost } from '$lib/lobby';
+  import { players, joinRoom, setProp, isReady, isHost, id } from '$lib/lobby';
   import { connectAsHost } from '$lib/webRtc';
   import { GameState, gameStore, startGame } from '$lib/games/rumbleStore';
   import Rumble from '$lib/games/rumble.svelte';
@@ -30,12 +30,12 @@
 
   const start = async () => {
     await connectAsHost();
-    startGame();
+    startGame({ players: $players });
   };
 </script>
 
 {#if $gameStore.state !== GameState.Lobby}
-  <Rumble />
+  <Rumble id={id()} isHost={$isHost} players={$players} />
 {:else}
   <section>
     <h2>Join Game</h2>
