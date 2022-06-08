@@ -35,7 +35,7 @@
 </script>
 
 {#if $gameStore.state !== GameState.Lobby}
-  <Rumble id={id()} isHost={$isHost} players={$players} />
+  <Rumble id={id()} isHost={$isHost} />
 {:else}
   <section>
     <h2>Join Game</h2>
