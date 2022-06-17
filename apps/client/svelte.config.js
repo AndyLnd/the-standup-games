@@ -13,16 +13,6 @@ const config = {
   ],
   kit: {
     adapter: node(),
-    vite: {
-      plugins: [
-        {
-          name: 'multiplayer',
-          configureServer(server) {
-            gameServer(server.httpServer);
-          },
-        },
-      ],
-    },
   },
 };
 

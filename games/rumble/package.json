@@ -1,0 +1,13 @@
+{
+  "name": "rumble",
+  "version": "0.0.0",
+  "private": true,
+  "main": "server/index.ts",
+  "files": [
+    "server/*",
+    "types/*"
+  ],
+  "scripts": {
+    "generate-types": "schema-codegen server/schema/Rumble.ts --output types/ --ts"
+  }
+}
