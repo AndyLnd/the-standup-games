@@ -21,7 +21,7 @@
   async function connect() {
     let Colyseus = await import("colyseus.js");
     const { hostname } = window.location;
-    let client = new Colyseus.Client(`ws://${hostname}:${port_ws}`);
+    let client = new Colyseus.Client(`wss://${hostname}:${port_ws}`);
     room = await client.joinOrCreate("rumble");
     room.state.listen("state", (newState) => {
       gameState = newState as GameState;
