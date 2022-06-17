@@ -9,6 +9,9 @@
   ],
   "scripts": {
     "build": "turbo run build",
+    "start-client": "npm run --prefix apps/client start",
+    "start-server": "npm run --prefix apps/server start",
+    "start": "npm run start-client & npm run start-server",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
