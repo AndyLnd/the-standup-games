@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "my-app",
+  "name": "standup.games_server",
   "version": "1.0.0",
   "description": "npm init template for bootstrapping an empty Colyseus project",
   "main": "lib/index.js",
@@ -8,8 +8,8 @@
     "start": "ts-node-dev --respawn --transpile-only src/index.ts",
     "dev": "npm run start",
     "loadtest": "colyseus-loadtest loadtest/example.ts --room my_room --numClients 2",
-    "build": "npm run clean && tsc && node node_modules/copyfiles/copyfiles package.json ./lib && node node_modules/copyfiles/copyfiles arena.env ./lib",
-    "clean": "node node_modules/rimraf/bin lib",
+    "build": "npm run clean && tsc && copyfiles package.json ./lib && copyfiles arena.env ./lib",
+    "clean": "rimraf lib",
     "test": "mocha --require ts-node/register test/**_test.ts --exit --timeout 15000"
   },
   "author": "",
