@@ -10,6 +10,9 @@
     updatePlayersPosition,
   } from "rumble/server/schema/Rumble";
 
+  // @ts-ignore
+  const port_ws = import.meta.env.VITE_PORT_WS || "2567";
+
   let room: Room<RumbleState>;
   let gameState: GameState = GameState.Lobby;
   let players = new Map<string, Player>();
@@ -18,7 +21,7 @@
   async function connect() {
     let Colyseus = await import("colyseus.js");
     const { hostname } = window.location;
-    let client = new Colyseus.Client(`ws://${hostname}:2567`);
+    let client = new Colyseus.Client(`ws://${hostname}:${port_ws}`);
     room = await client.joinOrCreate("rumble");
     room.state.listen("state", (newState) => {
       gameState = newState as GameState;
