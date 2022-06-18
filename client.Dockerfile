@@ -10,4 +10,4 @@ ENV PORT_WS 443
 ENV VITE_PORT_WS 443
 RUN npm run build
 EXPOSE 80
-CMD [ "npm", "start:client" ]
+CMD [ "npm", "run", "start:client" ]
