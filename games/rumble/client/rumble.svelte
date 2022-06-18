@@ -11,7 +11,7 @@
   } from "rumble/server/schema/Rumble";
 
   // @ts-ignore
-  const port_ws = import.meta.env.VITE_PORT_WS || "2567";
+  const port_ws = import.meta.env.VITE_PORT_WS || "443";
 
   let room: Room<RumbleState>;
   let gameState: GameState = GameState.Lobby;
@@ -21,7 +21,12 @@
   async function connect() {
     let Colyseus = await import("colyseus.js");
     const { hostname } = window.location;
-    let client = new Colyseus.Client(`wss://${hostname}:${port_ws}/ws`);
+    const isLocalhost = hostname === "localhost";
+    let client = new Colyseus.Client(
+      isLocalhost
+        ? `wss://localhost:${port_ws}`
+        : `wss://ws.thestandup.games:${port_ws}`
+    );
     room = await client.joinOrCreate("rumble");
     room.state.listen("state", (newState) => {
       gameState = newState as GameState;

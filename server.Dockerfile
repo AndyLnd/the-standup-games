@@ -6,8 +6,8 @@ COPY ./ /usr/src/app/
 RUN npm install && npm cache clean --force
 ENV NODE_ENV production
 ENV PORT 80
-ENV PORT_WS 2567
-ENV VITE_PORT_WS 2567
+ENV PORT_WS 443
+ENV VITE_PORT_WS 443
 RUN npm run build
-EXPOSE 80 2567
-CMD [ "npm", "start" ]
+EXPOSE 443
+CMD [ "npm", "start:server" ]
