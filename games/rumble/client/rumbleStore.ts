@@ -1,6 +1,5 @@
 import { RumbleState } from "rumble/types/RumbleState";
 import { Player } from "rumble/types/Player";
-import { onMount } from "svelte";
 import {
   GameState,
   updatePlayersAcceleration,
@@ -23,6 +22,7 @@ export const getRadius = (c: number) =>
 let room: Room<RumbleState>;
 export const gameState = writable<GameState>(GameState.Lobby);
 export const players = writable<Map<string, Player>>(new Map());
+export const worldSize = writable<number>(boardR);
 export const lost = writable<string[]>([]);
 export const sessionId = writable<string>("");
 export const hostId = writable<string>("");
@@ -62,6 +62,7 @@ export const connect = async (
       gameState.set(newState as GameState);
     });
     room.state.listen("lost", (newLost) => lost.set(newLost));
+    room.state.listen("worldSize", (newSize) => worldSize.set(newSize));
 
     room.state.players.onAdd = (p, key) => {
       players.update((pWritable) => pWritable.set(key, p));
@@ -79,10 +80,11 @@ export const connect = async (
       };
     };
   } catch (e) {
-    console.dir({e});
+    console.dir({ e });
     console.log(e.code);
     return { error: e.code };
   }
+  console.log({ room });
   return { roomId: room.id };
 };
 

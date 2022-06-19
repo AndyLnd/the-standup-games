@@ -20,6 +20,7 @@
     getRadius,
     reset,
     self,
+    worldSize,
   } from "./rumbleStore";
   import { GameState } from "rumble/server/schema/Rumble";
 
@@ -56,7 +57,7 @@
 {:else}
   <svg viewBox="0 0 {size} {size}" xmlns="http://www.w3.org/2000/svg">
     <circle
-      r={boardR}
+      r={$worldSize}
       cx={offset}
       cy={offset}
       fill="#797b82"

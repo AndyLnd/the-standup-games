@@ -185,5 +185,6 @@ export class RumbleState extends Schema {
     updatePlayersPosition(dt, this.players);
     this.updatePlayersCollision(dt);
     this.updatePlayersAlive();
+    this.worldSize -= (dt / 1000) * (100 / 120);
   }
 }
