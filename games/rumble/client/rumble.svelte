@@ -1,127 +1,39 @@
 <script lang="ts">
   export let browser;
-  import { Room } from "colyseus.js";
   import { onMount } from "svelte";
-  import { RumbleState } from "rumble/types/RumbleState";
-  import { Player } from "rumble/types/Player";
+
   import {
-    GameState,
-    updatePlayersAcceleration,
-    updatePlayersPosition,
-  } from "rumble/server/schema/Rumble";
-
-  // @ts-ignore
-  const port_ws = import.meta.env.VITE_PORT_WS || "443";
-
-  let room: Room<RumbleState>;
-  let gameState: GameState = GameState.Lobby;
-  let players = new Map<string, Player>();
-  let lost: string[] = [];
-
-  async function connect() {
-    let Colyseus = await import("colyseus.js");
-    const { hostname } = window.location;
-    const isLocalhost = hostname === "localhost";
-    let client = new Colyseus.Client(
-      isLocalhost
-        ? `wss://localhost:${port_ws}`
-        : `wss://ws.thestandup.games:${port_ws}`
-    );
-    room = await client.joinOrCreate("rumble");
-    room.state.listen("state", (newState) => {
-      gameState = newState as GameState;
-    });
-    room.state.listen("lost", (newLost) => (lost = newLost));
-
-    room.state.players.onAdd = (p, key) => {
-      players = players.set(key, p);
-      p.onChange = (changes) => {
-        changes.forEach(({ field, value }) => {
-          p[field] = value;
-        });
-        players = players.set(key, p);
-      };
-      p.onRemove = () => players.delete(key);
-    };
-  }
+    connect,
+    onFrame,
+    updatePlayers,
+    gameState,
+    handleKeyDown,
+    handleKeyUp,
+    players,
+    size,
+    boardR,
+    offset,
+    getRadius,
+    sendReady,
+  } from "./rumbleStore";
+  import { GameState } from "rumble/server/schema/Rumble";
 
   onMount(() => {
     if (!browser) return;
     connect();
-    let frame;
-
-    const loop = (currT: number, prevT: number) => {
-      frame = requestAnimationFrame((t) => loop(t, currT));
-      const dt = currT - prevT;
-      if (gameState !== GameState.InGame) return;
-      const newPlayers = updatePlayersAcceleration(players);
-      players = updatePlayersPosition(dt, newPlayers);
-    };
-
-    loop(16, 0);
-
-    return () => cancelAnimationFrame(frame);
+    onFrame((dt) => {
+      if ($gameState === GameState.InGame) updatePlayers(dt);
+    });
   });
-
-  const boardR = 100;
-  const playerR = 10;
-  const size = (boardR + playerR) * 2;
-  const offset = size / 2;
-  const kickRadius = 0.2;
-  const getRadius = (c: number) =>
-    c > 250
-      ? playerR
-      : ((Math.min(0, c - 250) / -250) * kickRadius + 1) * playerR;
-
-  const leftKeys = ["KeyA", "ArrowLeft"];
-  const rightKeys = ["KeyD", "ArrowRight"];
-  const upKeys = ["KeyW", "ArrowUp"];
-  const downKeys = ["KeyS", "ArrowDown"];
-
-  const allKeys = [...leftKeys, ...rightKeys, ...upKeys, ...downKeys];
-  const pressedKeys = new Set<string>();
-
-  const updateDir = () => {
-    const isLeft = leftKeys.some((k) => pressedKeys.has(k));
-    const isRight = rightKeys.some((k) => pressedKeys.has(k));
-    const isUp = upKeys.some((k) => pressedKeys.has(k));
-    const isDown = downKeys.some((k) => pressedKeys.has(k));
-
-    if (!isLeft && !isRight && !isUp && !isDown) {
-      room.send("direction", undefined);
-      return;
-    }
-    const x = (isLeft ? -1 : 0) + (isRight ? 1 : 0);
-    const y = (isUp ? -1 : 0) + (isDown ? 1 : 0);
-    const a = Math.atan2(y, x);
-    room.send("direction", a);
-  };
-  const handleKeyDown = (code: string) => {
-    if (gameState !== GameState.InGame) return;
-    if (code === "Space") {
-      room.send("kick");
-      return;
-    }
-    if (allKeys.includes(code)) {
-      pressedKeys.add(code);
-      updateDir();
-    }
-  };
-  const handleKeyUp = (code: string) => {
-    if (allKeys.includes(code)) {
-      pressedKeys.delete(code);
-      updateDir();
-    }
-  };
 </script>
 
 <svelte:body
   on:keydown={(ev) => handleKeyDown(ev.code)}
   on:keyup={(ev) => handleKeyUp(ev.code)} />
-<button on:click={() => room.send("setReady", true)}>set ready</button>
-<div>{gameState}</div>
+<button on:click={sendReady}>set ready</button>
+<div>{$gameState}</div>
 
-{#each [...players] as [key, player]}
+{#each [...$players] as [key, player] (key)}
   <div>{player.isReady}</div>
   <div>{player.accelDirection}</div>
 {/each}
@@ -134,7 +46,7 @@
     stroke="rgba(255,128,128,.2)"
     stroke-width="3px"
   />
-  {#each [...players] as [key, { color, name, x, y, isAlive, charge }] (key)}
+  {#each [...$players] as [key, { color, name, x, y, isAlive, charge }] (key)}
     <g class="disc" class:isAlive>
       <circle
         cx={x + offset}
