@@ -13,4 +13,5 @@ export class RumbleState extends Schema {
     @type("number") public worldSize!: number;
     @type("string") public state!: string;
     @type([ "string" ]) public lost: ArraySchema<string> = new ArraySchema<string>();
+    @type("string") public hostId!: string;
 }

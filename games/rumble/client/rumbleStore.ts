@@ -7,7 +7,7 @@ import {
   updatePlayersPosition,
 } from "rumble/server/schema/Rumble";
 
-import { get, writable } from "svelte/store";
+import { get, writable, derived } from "svelte/store";
 import { Room } from "colyseus.js";
 
 export const boardR = 100;
@@ -24,40 +24,66 @@ let room: Room<RumbleState>;
 export const gameState = writable<GameState>(GameState.Lobby);
 export const players = writable<Map<string, Player>>(new Map());
 export const lost = writable<string[]>([]);
+export const sessionId = writable<string>("");
+export const hostId = writable<string>("");
+export const self = derived([sessionId, players], ([$sessionId, $players]) =>
+  $players.get($sessionId)
+);
 
-export const connect = async () => {
+export const isHost = derived(
+  [sessionId, hostId],
+  ([$sessionId, $hostId]) => $sessionId && $hostId && $sessionId === $hostId
+);
+
+export const connect = async (
+  id?: string
+): Promise<{ error?: number; roomId?: string }> => {
   let Colyseus = await import("colyseus.js");
   const { hostname } = window.location;
   const isLocalhost = hostname === "localhost";
   // @ts-ignore
-  const port_ws = import.meta.env.VITE_PORT_WS || "443";
+  const port_ws = import.meta.env.VITE_PORT_WS || "2567";
 
   const client = new Colyseus.Client(
     isLocalhost
-      ? `wss://localhost:${port_ws}`
+      ? `ws://localhost:${port_ws}`
       : `wss://ws.thestandup.games:${port_ws}`
   );
-  room = await client.joinOrCreate<RumbleState>("rumble");
-  room.state.listen("state", (newState) => {
-    gameState.set(newState as GameState);
-  });
-  room.state.listen("lost", (newLost) => lost.set(newLost));
+  try {
+    if (id) {
+      room = await client.joinById(id);
+    } else {
+      room = await client.create<RumbleState>("rumble");
+    }
 
-  room.state.players.onAdd = (p, key) => {
-    players.update((pWritable) => pWritable.set(key, p));
-    p.onChange = (changes) => {
-      changes.forEach(({ field, value }) => {
-        p[field] = value;
-      });
+    sessionId.set(room.sessionId);
+    room.state.listen("hostId", (newHostId) => hostId.set(newHostId));
+    room.state.listen("state", (newState) => {
+      gameState.set(newState as GameState);
+    });
+    room.state.listen("lost", (newLost) => lost.set(newLost));
+
+    room.state.players.onAdd = (p, key) => {
       players.update((pWritable) => pWritable.set(key, p));
+      p.onChange = (changes) => {
+        changes.forEach(({ field, value }) => {
+          p[field] = value;
+        });
+        players.update((pWritable) => pWritable.set(key, p));
+      };
+      p.onRemove = () => {
+        players.update((pWritable) => {
+          pWritable.delete(key);
+          return pWritable;
+        });
+      };
     };
-    p.onRemove = () => {
-      players.update((pWritable) => {
-        pWritable.delete(key);
-        return pWritable;
-      });
-    };
-  };
+  } catch (e) {
+    console.dir({e});
+    console.log(e.code);
+    return { error: e.code };
+  }
+  return { roomId: room.id };
 };
 
 const leftKeys = ["KeyA", "ArrowLeft"];
@@ -110,21 +136,21 @@ export const updatePlayers = (dt: number) => {
 };
 
 export const onFrame = (callback: (dt?: number) => void) => {
-  onMount(() => {
-    let frame;
+  let frame;
 
-    const loop = (currT: number, prevT: number) => {
-      frame = requestAnimationFrame((t) => loop(t, currT));
-      const dt = currT - prevT;
-      callback(dt);
-    };
+  const loop = (currT: number, prevT: number) => {
+    frame = requestAnimationFrame((t) => loop(t, currT));
+    const dt = currT - prevT;
+    callback(dt);
+  };
 
-    loop(16, 0);
+  loop(16, 0);
 
-    return () => cancelAnimationFrame(frame);
-  });
+  return () => cancelAnimationFrame(frame);
 };
 
-export const sendReady = () => {
-  room.send("setReady", true)
-}
+export const setReady = (ready: boolean) => room.send("setReady", ready);
+export const setName = (name: string) => room.send("setName", name);
+export const setColor = (color: string) => room.send("setColor", color);
+export const start = () => room.send("start");
+export const reset = () => room.send("reset");

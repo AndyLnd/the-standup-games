@@ -45,18 +45,24 @@ export class RumbleState extends Schema {
   @type("number") worldSize: number = 100;
   @type("string") state: GameState = GameState.Lobby;
   @type(["string"]) lost: string[] = [];
+  @type("string") hostId: string = "";
 
   createPlayer(sessionId: string) {
     this.players.set(sessionId, new Player());
+    if (!this.hostId) {
+      this.hostId = sessionId;
+    }
   }
 
   removePlayer(sessionId: string) {
     this.players.delete(sessionId);
+    if (this.hostId === sessionId) {
+      this.hostId = [...this.players.keys()][0] ?? "";
+    }
   }
 
-  checkReady() {
+  checkReadyAndStart() {
     const isEveryoneReady = [...this.players.values()].every((p) => p.isReady);
-    console.log({ isEveryoneReady });
     if (isEveryoneReady) {
       this.startGame();
     }
@@ -81,6 +87,17 @@ export class RumbleState extends Schema {
       p.y = Math.sin(currentAngle) * dist;
 
       currentAngle += step;
+    });
+  }
+
+  reset() {
+    this.worldSize = 100;
+    this.state = GameState.Lobby;
+    this.lost = [];
+    this.players.forEach((p) => {
+      p.isAlive = true;
+      p.charge = maxCharge;
+      p.isReady = false;
     });
   }
 
@@ -150,7 +167,6 @@ export class RumbleState extends Schema {
   }
 
   checkGameOver() {
-    return false;
     const atMostOneAlive =
       [...this.players.values()].filter((p) => p.isAlive).length < 2;
     return atMostOneAlive;

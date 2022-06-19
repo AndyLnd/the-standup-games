@@ -1,9 +1,18 @@
-import { Client, Room } from "colyseus";
+import { Client, Room, ServerError } from "colyseus";
 import { GameState, RumbleState } from "./schema/Rumble";
 
 export class RumbleRoom extends Room<RumbleState> {
   gameOverScheduled: boolean = false;
+
+  onAuth() {
+    if (this.state.state !== GameState.Lobby) {
+      throw new ServerError(409, "Game is already in session");
+    }
+    return true;
+  }
+
   onCreate(options: any): void | Promise<any> {
+    console.log('create');
     this.setState(new RumbleState());
 
     this.onMessage("*", (client, type, data) => {
@@ -23,7 +32,14 @@ export class RumbleRoom extends Room<RumbleState> {
           break;
         case "setReady":
           player.isReady = data;
-          this.state.checkReady();
+          break;
+        case "start":
+          if (client.sessionId === this.state.hostId) {
+            this.state.checkReadyAndStart();
+          }
+          break;
+        case "reset":
+          this.state.reset();
       }
     });
 
