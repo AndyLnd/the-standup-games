@@ -12,7 +12,6 @@ export class RumbleRoom extends Room<RumbleState> {
   }
 
   onCreate(options: any): void | Promise<any> {
-    console.log('create');
     this.setState(new RumbleState());
 
     this.onMessage("*", (client, type, data) => {
@@ -40,6 +39,7 @@ export class RumbleRoom extends Room<RumbleState> {
           break;
         case "reset":
           this.state.reset();
+          this.gameOverScheduled = false;
       }
     });
 
