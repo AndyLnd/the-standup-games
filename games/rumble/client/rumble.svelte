@@ -15,12 +15,11 @@
     handleKeyUp,
     players,
     size,
-    boardR,
     offset,
     getRadius,
     reset,
-    self,
     worldSize,
+    hasRoom,
   } from "./rumbleStore";
   import { GameState } from "rumble/server/schema/Rumble";
 
@@ -28,7 +27,7 @@
 
   onMount(() => {
     if (!browser) return;
-    if (roomId && !$self) {
+    if (roomId && !$hasRoom) {
       connect(roomId);
     }
     onFrame((dt) => {
@@ -50,7 +49,7 @@
   <section>
     <button class="host" on:click={() => hostGame()}>Host Game</button>
   </section>
-{:else if !$self}
+{:else if !$hasRoom}
   <div>loading ...</div>
 {:else if $gameState === GameState.Lobby}
   <Lobby {browser} />

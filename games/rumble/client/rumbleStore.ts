@@ -30,6 +30,8 @@ export const self = derived([sessionId, players], ([$sessionId, $players]) =>
   $players.get($sessionId)
 );
 
+export const hasRoom = writable(false);
+
 export const isHost = derived(
   [sessionId, hostId],
   ([$sessionId, $hostId]) => $sessionId && $hostId && $sessionId === $hostId
@@ -55,6 +57,7 @@ export const connect = async (
     } else {
       room = await client.create<RumbleState>("rumble");
     }
+    hasRoom.set(!!room);
 
     sessionId.set(room.sessionId);
     room.state.listen("hostId", (newHostId) => hostId.set(newHostId));
