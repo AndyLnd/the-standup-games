@@ -20,6 +20,7 @@
     reset,
     worldSize,
     hasRoom,
+    self,
   } from "./rumbleStore";
   import { GameState } from "rumble/server/schema/Rumble";
 
@@ -49,7 +50,7 @@
   <section>
     <button class="host" on:click={() => hostGame()}>Host Game</button>
   </section>
-{:else if !$hasRoom}
+{:else if !$self}
   <div>loading ...</div>
 {:else if $gameState === GameState.Lobby}
   <Lobby {browser} />
