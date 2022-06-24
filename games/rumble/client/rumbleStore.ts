@@ -68,12 +68,6 @@ export const connect = async (
     room.state.lost.onAdd = (nl: string) => {
       lost.update((l) => [...l, JSON.parse(nl)]);
     };
-    // room.state.listen("lost", (newLost) => {
-    //   console.log("set lost");
-    //   lost.set(newLost.map((l) => JSON.parse(l)));
-    //   console.log(newLost.map((l) => l));
-    //   console.log(newLost);
-    // });
     room.state.listen("worldSize", (newSize) => worldSize.set(newSize));
 
     room.state.players.onAdd = (p: Player, key) => {
