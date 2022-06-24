@@ -1,5 +1,6 @@
 import { Schema, type, MapSchema } from "@colyseus/schema";
 import { Player, maxCharge } from "./Player";
+import { Player as TSPlayer } from "../../types/Player";
 
 const acceleration = 0.007;
 const drag = 0.95;
@@ -7,7 +8,9 @@ const playerR = 10;
 const kickRadius = 0.2;
 const kickPower = 0.1;
 
-export const updatePlayersAcceleration = (players: Map<string, Player>) => {
+export const updatePlayersAcceleration = (
+  players: Map<string, Player | TSPlayer>
+) => {
   players.forEach((p) => {
     if (!p.isAlive || p.accelDirection == null) return;
     const dx = Math.cos(p.accelDirection);
@@ -20,7 +23,7 @@ export const updatePlayersAcceleration = (players: Map<string, Player>) => {
 
 export const updatePlayersPosition = (
   dt: number,
-  players: Map<string, Player>
+  players: Map<string, Player | TSPlayer>
 ) => {
   players.forEach((p) => {
     p.x += p.vx * dt;
@@ -105,7 +108,7 @@ export class RumbleState extends Schema {
     const skip = new Map([...this.players.keys()].map((k) => [k, [k]]));
     this.players.forEach((p, pId) => {
       const others = [...this.players].filter(
-        ([id]) => !skip.get(pId).includes(id)
+        ([id]) => !skip.get(pId)?.includes(id)
       );
       others.forEach(([oId, o]) => {
         const dx = p.x - o.x;
@@ -128,7 +131,7 @@ export class RumbleState extends Schema {
           o.x -= offX;
           o.y -= offY;
 
-          skip.set(oId, [...skip.get(oId), pId]);
+          skip.set(oId, [...(skip.get(oId) ?? []), pId]);
         }
       });
     });
@@ -140,10 +143,18 @@ export class RumbleState extends Schema {
 
       const isAlive = Math.sqrt(p.x * p.x + p.y * p.y) <= this.worldSize;
       if (!isAlive) {
-        this.lost.push(p.name);
+        this.addLost(p);
         p.isAlive = false;
       }
     });
+  }
+
+  addLost(p: Player) {
+    const color = p.color
+      .match(/\w\w/g)
+      ?.map((v) => parseInt(v, 16))
+      .join(",");
+    this.lost.push(JSON.stringify({ name: p.name, color }));
   }
 
   handleKick(player: Player) {
@@ -174,10 +185,9 @@ export class RumbleState extends Schema {
 
   setGameOver() {
     this.state = GameState.GameOver;
-    const stillAlive = [...this.players.values()]
+    [...this.players.values()]
       .filter((p) => p.isAlive)
-      .map((p) => p.name);
-    this.lost.push(...stillAlive);
+      .map((p) => this.addLost(p));
   }
 
   update(dt: number) {

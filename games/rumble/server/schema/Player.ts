@@ -12,5 +12,5 @@ export class Player extends Schema {
   @type("number") vy: number = 0;
   @type("boolean") isAlive: boolean = true;
   @type("number") charge: number = maxCharge;
-  @type("number") accelDirection: number = undefined;
+  @type("number") accelDirection: number | undefined = undefined;
 }

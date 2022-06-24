@@ -39,23 +39,23 @@
   <h2>Join Game</h2>
   <div class="setup">
     <input
-      disabled={$self.isReady}
+      disabled={$self?.isReady}
       bind:value={userColor}
       type="color"
       on:input={() => setUserColor(userColor)}
     />
     <input
       autofocus
-      disabled={$self.isReady}
+      disabled={$self?.isReady}
       bind:value={userName}
       maxlength="8"
       on:input={() => setUserName(userName)}
     />
     <button
       disabled={userName.trim().length === 0}
-      class:isReady={$self.isReady}
-      on:click={() => setReady(!$self.isReady)}
-      >{$self.isReady ? "Wait, wait!" : "Let's go!"}</button
+      class:isReady={$self?.isReady}
+      on:click={() => setReady(!$self?.isReady)}
+      >{$self?.isReady ? "Wait, wait!" : "Let's go!"}</button
     >
   </div>
 

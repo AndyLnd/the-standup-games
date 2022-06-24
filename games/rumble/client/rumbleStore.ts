@@ -23,7 +23,8 @@ let room: Room<RumbleState>;
 export const gameState = writable<GameState>(GameState.Lobby);
 export const players = writable<Map<string, Player>>(new Map());
 export const worldSize = writable<number>(boardR);
-export const lost = writable<string[]>([]);
+//export const lost = writable<string[]>([]);
+export const lost = writable<{ name: string; color: string }[]>([]);
 export const sessionId = writable<string>("");
 export const hostId = writable<string>("");
 export const self = derived([sessionId, players], ([$sessionId, $players]) =>
@@ -64,14 +65,22 @@ export const connect = async (
     room.state.listen("state", (newState) => {
       gameState.set(newState as GameState);
     });
-    room.state.listen("lost", (newLost) => lost.set(newLost));
+    room.state.lost.onAdd = (nl: string) => {
+      lost.update((l) => [...l, JSON.parse(nl)]);
+    };
+    // room.state.listen("lost", (newLost) => {
+    //   console.log("set lost");
+    //   lost.set(newLost.map((l) => JSON.parse(l)));
+    //   console.log(newLost.map((l) => l));
+    //   console.log(newLost);
+    // });
     room.state.listen("worldSize", (newSize) => worldSize.set(newSize));
 
-    room.state.players.onAdd = (p, key) => {
+    room.state.players.onAdd = (p: Player, key) => {
       players.update((pWritable) => pWritable.set(key, p));
       p.onChange = (changes) => {
         changes.forEach(({ field, value }) => {
-          p[field] = value;
+          (p as any)[field] = value;
         });
         players.update((pWritable) => pWritable.set(key, p));
       };
@@ -82,12 +91,11 @@ export const connect = async (
         });
       };
     };
-  } catch (e) {
+  } catch (e: any) {
     console.dir({ e });
     console.log(e.code);
     return { error: e.code };
   }
-  console.log({ room });
   return { roomId: room.id };
 };
 
@@ -135,13 +143,17 @@ export const handleKeyUp = (code: string) => {
 };
 
 export const updatePlayers = (dt: number) => {
-  players.update((ps) =>
-    updatePlayersPosition(dt, updatePlayersAcceleration(ps))
+  players.update(
+    (ps) =>
+      updatePlayersPosition(dt, updatePlayersAcceleration(ps)) as Map<
+        string,
+        Player
+      >
   );
 };
 
 export const onFrame = (callback: (dt?: number) => void) => {
-  let frame;
+  let frame: number;
 
   const loop = (currT: number, prevT: number) => {
     frame = requestAnimationFrame((t) => loop(t, currT));
