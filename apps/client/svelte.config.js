@@ -2,7 +2,6 @@
 
 import preprocess from 'svelte-preprocess';
 import node from '@sveltejs/adapter-node';
-import gameServer from './gameserver.js';
 
 const config = {
   preprocess: [

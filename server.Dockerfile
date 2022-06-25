@@ -10,4 +10,4 @@ ENV PORT_WS 443
 ENV VITE_PORT_WS 443
 RUN npm run build
 EXPOSE 443
-CMD [ "npm", "run", "start:server" ]
+CMD node apps/server/build/index.js

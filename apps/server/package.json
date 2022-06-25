@@ -8,8 +8,8 @@
     "start": "ts-node-dev --respawn --transpile-only src/index.ts",
     "dev": "npm run start",
     "loadtest": "colyseus-loadtest loadtest/example.ts --room my_room --numClients 2",
-    "build": "npm run clean && tsc && copyfiles package.json ./lib && copyfiles arena.env ./lib",
-    "clean": "rimraf lib",
+    "build": "npm run clean && tsc && copyfiles package.json ./build && copyfiles arena.env ./build",
+    "clean": "rimraf build",
     "test": "mocha --require ts-node/register test/**_test.ts --exit --timeout 15000"
   },
   "author": "",
@@ -34,7 +34,7 @@
   "dependencies": {
     "@colyseus/arena": "^0.14.22",
     "@colyseus/monitor": "^0.14.20",
-    "colyseus": "^0.14.20",
+    "colyseus": "^0.14.17",
     "cors": "^2.8.5",
     "express": "^4.16.4"
   }
