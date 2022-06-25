@@ -3,7 +3,7 @@
   "name": "standup.games_server",
   "version": "1.0.0",
   "description": "npm init template for bootstrapping an empty Colyseus project",
-  "main": "lib/index.js",
+  "main": "build/index.js",
   "scripts": {
     "start": "ts-node-dev --respawn --transpile-only src/index.ts",
     "dev": "npm run start",
@@ -32,10 +32,10 @@
     "typescript": "^3.4.5"
   },
   "dependencies": {
-    "@colyseus/arena": "^0.14.22",
-    "@colyseus/monitor": "^0.14.20",
-    "colyseus": "^0.14.17",
+    "@colyseus/arena": "^0.14.24",
+    "@colyseus/monitor": "^0.14.22",
+    "colyseus": "^0.14.23",
     "cors": "^2.8.5",
-    "express": "^4.16.4"
+    "express": "^4.18.1"
   }
 }

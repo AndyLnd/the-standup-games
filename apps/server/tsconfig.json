@@ -1,17 +1,17 @@
 {
   "compilerOptions": {
     "outDir": "build",
-    "target": "es6",
     "module": "commonjs",
+    "lib": ["es6"],
+    "target": "es2016",
     "strict": true,
     "allowJs": true,
     "strictNullChecks": false,
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "downlevelIteration": true
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }
