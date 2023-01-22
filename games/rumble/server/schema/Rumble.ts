@@ -96,7 +96,7 @@ export class RumbleState extends Schema {
   reset() {
     this.worldSize = 100;
     this.state = GameState.Lobby;
-    this.lost = [];
+    this.lost.length = 0;
     this.players.forEach((p) => {
       p.isAlive = true;
       p.charge = maxCharge;

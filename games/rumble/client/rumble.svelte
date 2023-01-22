@@ -17,6 +17,7 @@
   import Lobby from "./Lobby.svelte";
   import Game from "./Game.svelte";
   import Scores from "./Scores.svelte";
+  import ForkMe from "../../../apps/client/src/lib/ForkMe.svelte";
 
   onMount(() => {
     if (!browser) return;
@@ -33,6 +34,8 @@
     goto(`/rumble/${roomId}`);
   };
 </script>
+
+<ForkMe />
 
 {#if !roomId}
   <section>
