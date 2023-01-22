@@ -63,7 +63,7 @@ export class RumbleRoom extends Room<RumbleState> {
 
   async onLeave(client: Client) {
     try {
-      await this.allowReconnection(client, 20);
+      await this.allowReconnection(client, 2);
     } catch (e) {
       this.state.removePlayer(client.sessionId);
     }

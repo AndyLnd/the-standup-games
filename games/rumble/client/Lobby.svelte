@@ -37,6 +37,7 @@
 
 <section>
   <h2>Join Game</h2>
+  <h4>{$players.size} {$players.size === 1 ? "player" : "players"}</h4>
   <div class="setup">
     <input
       disabled={$self?.isReady}
@@ -87,8 +88,12 @@
     min-width: 400px;
     margin: 1rem auto;
   }
-  h2 {
+  h2,
+  h4 {
     text-align: center;
+  }
+  h4 {
+    margin-top: -0.5rem;
   }
   .player-list {
     display: flex;
