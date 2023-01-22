@@ -23,8 +23,9 @@ let room: Room<RumbleState>;
 export const gameState = writable<GameState>(GameState.Lobby);
 export const players = writable<Map<string, Player>>(new Map());
 export const worldSize = writable<number>(boardR);
-//export const lost = writable<string[]>([]);
-export const lost = writable<{ name: string; color: string }[]>([]);
+type Loser = { name: string; color: string };
+export const getLoserList = () =>
+  room.state.lost.map<Loser>((l) => JSON.parse(l));
 export const sessionId = writable<string>("");
 export const hostId = writable<string>("");
 export const self = derived([sessionId, players], ([$sessionId, $players]) =>
@@ -65,9 +66,6 @@ export const connect = async (
     room.state.listen("state", (newState) => {
       gameState.set(newState as GameState);
     });
-    room.state.lost.onAdd = (nl: string) => {
-      lost.update((l) => [...l, JSON.parse(nl)]);
-    };
     room.state.listen("worldSize", (newSize) => worldSize.set(newSize));
 
     room.state.players.onAdd = (p: Player, key) => {

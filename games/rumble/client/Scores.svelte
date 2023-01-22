@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { isHost, lost, reset } from "./rumbleStore";
+  import { isHost, getLoserList, reset } from "./rumbleStore";
 </script>
 
 <div class="gameover-list">
-  {#each $lost.reverse() as { name, color }, i}
+  {#each getLoserList().reverse() as { name, color }, i}
     <div class="name" style="--color:{color}">
       <div>{i === 0 ? "👑" : `${i + 1}.`}</div>
       <div>{name}</div>
