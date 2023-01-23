@@ -20,11 +20,13 @@
     userName = localStorage.getItem("userName") || getRandomName();
     userColor = localStorage.getItem("userColor") || getRandomColor();
   });
-  $: {
+
+  $: if (userName) {
     localStorage.setItem("userName", userName);
     setName(userName);
   }
-  $: {
+
+  $: if (userColor) {
     localStorage.setItem("userColor", userColor);
     setColor(userColor);
   }
@@ -41,11 +43,7 @@
         userColor = getRandomColor();
       }}>🎲</button
     >
-    <input
-      disabled={$self?.isReady}
-      bind:value={userColor}
-      type="color"
-    />
+    <input disabled={$self?.isReady} bind:value={userColor} type="color" />
     <input
       autofocus
       disabled={$self?.isReady}
