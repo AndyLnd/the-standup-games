@@ -36,13 +36,16 @@
   <h2>Join Game</h2>
   <h4>{$players.size} {$players.size === 1 ? "player" : "players"}</h4>
   <div class="setup">
-    <button
-      disabled={$self?.isReady}
-      on:click={() => {
-        userName = getRandomName();
-        userColor = getRandomColor();
-      }}>🎲</button
-    >
+    <div>
+      <button
+        disabled={$self?.isReady}
+        on:click={() => {
+          userName = getRandomName();
+          userColor = getRandomColor();
+        }}>🎲</button
+      >
+      <div class="tooltip">Surprise me!</div>
+    </div>
     <input disabled={$self?.isReady} bind:value={userColor} type="color" />
     <input
       autofocus
@@ -120,12 +123,36 @@
     padding: 0;
     border: 0;
   }
-  .setup button:first-of-type {
+
+  .setup div {
+    display: flex;
+    position: relative;
+  }
+  .setup div .tooltip {
+    pointer-events: none;
+    opacity: 0;
+    position: absolute;
+    transition: all ease-in .1s;
+    font-weight: 900;
+    rotate: 0;
+    translate: -30px -15px;
+    scale: .5;
+    color: rgb(241, 244, 146);
+    text-shadow: 1px 1px 0 rgb(53, 0, 0);
+    white-space: nowrap;
+  }
+  .setup div:hover .tooltip {
+    opacity: 1;
+    scale: 1;
+    rotate: -15deg;
+  }
+  .setup div button:first-of-type {
     border-top-left-radius: 0.2rem;
     border-bottom-left-radius: 0.2rem;
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
     padding: 0.25rem 0.5rem;
+    width: auto;
   }
   .setup input:nth-child(2) {
     padding: 0 0.25rem 0 0.2rem;
