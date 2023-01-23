@@ -1,6 +1,7 @@
 <script lang="ts">
   export let browser = false;
   import { onMount } from "svelte";
+  import { getRandomColor, getRandomName } from "./randomize";
   import {
     isHost,
     self,
@@ -14,43 +15,42 @@
   let userName = "";
   let userColor = "";
 
-  const setUserName = (name: string) => {
-    localStorage.setItem("userName", name);
-    setName(name);
-  };
-
-  const setUserColor = (color: string) => {
-    localStorage.setItem("userColor", color);
-    setColor(color);
-  };
-
   onMount(() => {
     if (!browser) return;
-    userName = localStorage.getItem("userName") || "Guest";
-    userColor =
-      localStorage.getItem("userColor") ||
-      `#${Math.random().toString(16).substring(2, 8)}`;
-    setUserName(userName);
-    setUserColor(userColor);
+    userName = localStorage.getItem("userName") || getRandomName();
+    userColor = localStorage.getItem("userColor") || getRandomColor();
   });
+  $: {
+    localStorage.setItem("userName", userName);
+    setName(userName);
+  }
+  $: {
+    localStorage.setItem("userColor", userColor);
+    setColor(userColor);
+  }
 </script>
 
 <section>
   <h2>Join Game</h2>
   <h4>{$players.size} {$players.size === 1 ? "player" : "players"}</h4>
   <div class="setup">
+    <button
+      disabled={$self?.isReady}
+      on:click={() => {
+        userName = getRandomName();
+        userColor = getRandomColor();
+      }}>🎲</button
+    >
     <input
       disabled={$self?.isReady}
       bind:value={userColor}
       type="color"
-      on:input={() => setUserColor(userColor)}
     />
     <input
       autofocus
       disabled={$self?.isReady}
       bind:value={userName}
       maxlength="8"
-      on:input={() => setUserName(userName)}
     />
     <button
       disabled={userName.trim().length === 0}
@@ -122,16 +122,22 @@
     padding: 0;
     border: 0;
   }
-  .setup input:first-of-type {
+  .setup button:first-of-type {
     border-top-left-radius: 0.2rem;
     border-bottom-left-radius: 0.2rem;
-    padding: 0 0.25rem 0 0.2rem;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    padding: 0.25rem 0.5rem;
   }
   .setup input:nth-child(2) {
+    padding: 0 0.25rem 0 0.2rem;
+  }
+
+  .setup input:nth-child(3) {
     padding-left: 0.25rem;
   }
 
-  .setup button {
+  .setup button:last-of-type {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     width: 5rem;
