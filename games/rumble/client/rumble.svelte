@@ -19,18 +19,24 @@
   import Scores from "./Scores.svelte";
   import ForkMe from "../../../apps/client/src/lib/ForkMe.svelte";
 
-  onMount(() => {
+  let loadingError = 0;
+
+  onMount(async () => {
     if (!browser) return;
     if (roomId && !$hasRoom) {
-      connect(roomId);
+      const { error } = await connect(roomId);
+      loadingError = error ?? 0;
     }
-    onFrame((dt) => {
-      if ($gameState === GameState.InGame) updatePlayers(dt!);
-    });
+    if (!loadingError) {
+      onFrame((dt) => {
+        if ($gameState === GameState.InGame) updatePlayers(dt!);
+      });
+    }
   });
 
   const hostGame = async () => {
-    const { roomId } = await connect();
+    const { roomId, error } = await connect();
+    loadingError = error ?? 0;
     goto(`/rumble/${roomId}`);
   };
 </script>
@@ -41,8 +47,20 @@
   <section>
     <button class="host" on:click={() => hostGame()}>Host Game</button>
   </section>
+{:else if loadingError}
+  <section>
+    <p>
+      {loadingError === 409
+        ? "Sorry, the round is already running."
+        : "Sorry, you can't join this round."}
+    </p>
+    <p>Try hosting a new one.</p>
+    <button class="host" on:click={() => hostGame()}>Host Game</button>
+  </section>
 {:else if !$self}
-  <div>loading ...</div>
+  <section>
+    <div>loading ...</div>
+  </section>
 {:else if $gameState === GameState.Lobby}
   <Lobby {browser} />
 {:else}

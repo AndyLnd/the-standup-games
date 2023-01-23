@@ -43,8 +43,7 @@ export const connect = async (
   id?: string
 ): Promise<{ error?: number; roomId?: string }> => {
   let Colyseus = await import("colyseus.js");
-  const { hostname } = window.location;
-  const isLocalhost = hostname === "localhost";
+  const isLocalhost = window.location.hostname === "localhost";
   // @ts-ignore
   const port_ws = import.meta.env.VITE_PORT_WS || "2567";
 
@@ -84,8 +83,6 @@ export const connect = async (
       };
     };
   } catch (e: any) {
-    console.dir({ e });
-    console.log(e.code);
     return { error: e.code };
   }
   return { roomId: room.id };
