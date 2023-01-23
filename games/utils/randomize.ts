@@ -1,5 +1,7 @@
-export const getRandomColor = () => `#${Math.random().toString(16).substring(2, 8)}`;
-export const getRandomName = () => generateRandomName(letterFrequencies, 4, 8);
+export const getRandomColor = () =>
+  `#${Math.random().toString(16).substring(2, 8)}`;
+export const getRandomName = (min = 4, max = 8) =>
+  generateRandomName(letterFrequencies, min, max);
 
 const getWeightedRandom = (list: number[]) => {
   const total = list.reduce((acc, l) => acc + l, 0);
