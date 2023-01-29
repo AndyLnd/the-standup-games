@@ -6,7 +6,6 @@
     height="147"
     overflow="visible"
     filter="drop-shadow(0 0 5px rgba(0,0,0,.7))"
-    style="position:absolute;top:0;right:0;"
     viewBox="28.4 1.3 147 147"
     ><linearGradient
       id="a"
@@ -29,3 +28,12 @@
     /></svg
   >
 </a>
+
+<style>
+  a {
+    z-index: 3;
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+</style>

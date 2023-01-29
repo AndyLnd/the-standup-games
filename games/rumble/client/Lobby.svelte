@@ -1,7 +1,7 @@
 <script lang="ts">
   export let browser = false;
   import { onMount } from "svelte";
-  import { getRandomColor, getRandomName } from "./randomize";
+  import { getRandomColor, getRandomName } from "utils/randomize";
   import {
     isHost,
     self,
@@ -132,11 +132,11 @@
     pointer-events: none;
     opacity: 0;
     position: absolute;
-    transition: all ease-in .1s;
+    transition: all ease-in 0.1s;
     font-weight: 900;
     rotate: 0;
     translate: -30px -15px;
-    scale: .5;
+    scale: 0.5;
     color: rgb(241, 244, 146);
     text-shadow: 1px 1px 0 rgb(53, 0, 0);
     white-space: nowrap;
