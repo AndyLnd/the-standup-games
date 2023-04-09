@@ -1,8 +1,17 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+  import confetti from 'canvas-confetti';
   import { isHost, getLoserList, reset } from "./rumbleStore";
+
+  onMount(async () => {
+    confetti({
+      particleCount: 150,
+      spread: 150,
+    });
+	});
 </script>
 
-<div class="gameover-list">
+<div class="gameover-list"> 
   {#each getLoserList().reverse() as { name, color }, i}
     <div class="name" style="--color:{color}">
       <div>{i === 0 ? "👑" : `${i + 1}.`}</div>
