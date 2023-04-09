@@ -11,7 +11,7 @@
 	});
 </script>
 
-<div class="gameover-list"> 
+<div class="gameover-list">
   {#each getLoserList().reverse() as { name, color }, i}
     <div class="name" style="--color:{color}">
       <div>{i === 0 ? "👑" : `${i + 1}.`}</div>
