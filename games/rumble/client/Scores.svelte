@@ -1,5 +1,14 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+  import confetti from 'canvas-confetti';
   import { isHost, getLoserList, reset } from "./rumbleStore";
+
+  onMount(() => {
+    confetti({
+      particleCount: 150,
+      spread: 150,
+    });
+	});
 </script>
 
 <div class="gameover-list">
