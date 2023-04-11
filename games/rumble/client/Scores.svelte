@@ -3,7 +3,7 @@
   import confetti from 'canvas-confetti';
   import { isHost, getLoserList, reset } from "./rumbleStore";
 
-  onMount(async () => {
+  onMount(() => {
     confetti({
       particleCount: 150,
       spread: 150,
