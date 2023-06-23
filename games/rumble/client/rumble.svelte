@@ -18,6 +18,7 @@
   import Game from "./Game.svelte";
   import Scores from "./Scores.svelte";
   import ForkMe from "../../../apps/client/src/lib/ForkMe.svelte";
+  import CountDown from "./CountDown.svelte";
 
   let loadingError = 0;
 
@@ -67,6 +68,9 @@
   <Game />
   {#if $gameState === GameState.GameOver}
     <Scores />
+  {/if}
+  {#if $gameState === GameState.CountDown}
+    <CountDown />
   {/if}
 {/if}
 
