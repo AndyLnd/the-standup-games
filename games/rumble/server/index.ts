@@ -11,7 +11,7 @@ export class RumbleRoom extends Room<RumbleState> {
     return true;
   }
 
-  onCreate(options: any): void | Promise<any> {
+  onCreate(_options: any): void | Promise<any> {
     this.setState(new RumbleState());
 
     this.onMessage("*", (client, type, data) => {
@@ -35,6 +35,15 @@ export class RumbleRoom extends Room<RumbleState> {
         case "start":
           if (client.sessionId === this.state.hostId) {
             this.state.checkReadyAndStart();
+          }
+          break;
+        case "kickPlayer":
+          if (client.sessionId === this.state.hostId) {
+            const kickedClient = this.clients.find((c) => c.sessionId === data);
+            if (kickedClient) {
+              kickedClient.leave();
+              this.state.removePlayer(data);
+            }
           }
           break;
         case "reset":
