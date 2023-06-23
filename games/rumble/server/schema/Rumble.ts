@@ -39,6 +39,7 @@ export const updatePlayersPosition = (
 
 export enum GameState {
   Lobby = "lobby",
+  CountDown = "countDown",
   InGame = "inGame",
   GameOver = "gameOver",
 }
@@ -73,7 +74,10 @@ export class RumbleState extends Schema {
 
   startGame() {
     this.worldSize = 100;
-    this.state = GameState.InGame;
+    this.state = GameState.CountDown;
+    setTimeout(() => {
+      this.state = GameState.InGame;
+    }, 3000);
     this.lost = [];
 
     const tau = Math.PI * 2;
