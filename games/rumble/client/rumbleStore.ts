@@ -12,7 +12,6 @@ import { Room } from "colyseus.js";
 export const boardR = 100;
 export const playerR = 10;
 export const size = (boardR + playerR) * 2;
-export const offset = size / 2;
 const kickRadius = 0.2;
 export const getRadius = (c: number) =>
   c > 250

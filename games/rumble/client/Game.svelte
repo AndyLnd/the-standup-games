@@ -4,7 +4,6 @@
     handleKeyUp,
     players,
     size,
-    offset,
     getRadius,
     worldSize,
   } from "./rumbleStore";
@@ -17,7 +16,10 @@
 />
 <Stars />
 
-<svg viewBox="0 0 {size} {size}" xmlns="http://www.w3.org/2000/svg">
+<svg
+  viewBox="{-size / 2} {-size / 2} {size} {size}"
+  xmlns="http://www.w3.org/2000/svg"
+>
   <defs>
     <radialGradient id="board">
       <stop offset="10%" stop-color="#696b72" />
@@ -26,8 +28,8 @@
   </defs>
   <circle
     r={$worldSize}
-    cx={offset}
-    cy={offset}
+    cx={0}
+    cy={0}
     fill="url('#board')"
     stroke="rgba(255,128,128,.2)"
     stroke-width="3px"
@@ -35,14 +37,14 @@
   {#each [...$players] as [key, { color, name, x, y, isAlive, charge }] (key)}
     <g class="disc" class:isAlive>
       <circle
-        cx={x + offset}
-        cy={y + offset}
+        cx={x}
+        cy={y}
         r={getRadius(charge)}
         fill={color}
         stroke="rgba(0,0,0,.2)"
         stroke-width="1px"
       />
-      <text x={x + offset} y={y + offset}>{name}</text>
+      <text {x} {y}>{name}</text>
     </g>
   {/each}
 </svg>
