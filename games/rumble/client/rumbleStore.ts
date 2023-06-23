@@ -40,6 +40,7 @@ export const isHost = derived(
 );
 
 export const connect = async (
+  goto: (href: string, options: {}) => void,
   id?: string
 ): Promise<{ error?: number; roomId?: string }> => {
   let Colyseus = await import("colyseus.js");
@@ -59,6 +60,10 @@ export const connect = async (
       room = await client.create<RumbleState>("rumble");
     }
     hasRoom.set(!!room);
+    room.onLeave(() => {
+      players.set(new Map());
+      goto("/", { replaceState: true });
+    });
 
     sessionId.set(room.sessionId);
     room.state.listen("hostId", (newHostId) => hostId.set(newHostId));
@@ -160,3 +165,5 @@ export const setName = (name: string) => room.send("setName", name);
 export const setColor = (color: string) => room.send("setColor", color);
 export const start = () => room.send("start");
 export const reset = () => room.send("reset");
+export const kickPlayer = (playerId: string) =>
+  room.send("kickPlayer", playerId);

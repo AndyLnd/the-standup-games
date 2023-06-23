@@ -10,6 +10,7 @@
     start,
     setName,
     setColor,
+    kickPlayer,
   } from "./rumbleStore";
 
   let userName = "";
@@ -63,10 +64,17 @@
 
   <div class="player-list">
     {#each [...$players] as [key, player] (key)}
-      <div class="player" class:playerready={player.isReady}>
-        <div class="ready">{player.isReady ? "✅" : "❓"}</div>
-        <div class="color" style="background-color: {player.color}" />
-        <div>{player.name}</div>
+      <div class="player-wrapper">
+        <div class="player" class:playerready={player.isReady}>
+          <div class="ready">{player.isReady ? "✅" : "❓"}</div>
+          <div class="color" style="background-color: {player.color}" />
+          <div>{player.name}</div>
+        </div>
+        {#if $isHost && !($self === player)}
+          <button class="kick-button" on:click={() => kickPlayer(key)}>
+            ❌
+          </button>
+        {/if}
       </div>
     {/each}
   </div>
@@ -99,6 +107,11 @@
   .player-list {
     display: flex;
     flex-direction: column;
+  }
+
+  .player-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 36px;
   }
   .player {
     margin: 0.2rem;
@@ -190,5 +203,12 @@
 
   button.isReady {
     background-color: rgb(174, 100, 100);
+  }
+
+  button.kick-button {
+    margin: 0.2rem;
+    padding: unset;
+    background-color: black;
+    border: 1px solid white;
   }
 </style>

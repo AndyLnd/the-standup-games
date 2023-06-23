@@ -24,7 +24,7 @@
   onMount(async () => {
     if (!browser) return;
     if (roomId && !$hasRoom) {
-      const { error } = await connect(roomId);
+      const { error } = await connect(goto, roomId);
       loadingError = error ?? 0;
     }
     if (!loadingError) {
@@ -35,7 +35,7 @@
   });
 
   const hostGame = async () => {
-    const { roomId, error } = await connect();
+    const { roomId, error } = await connect(goto);
     loadingError = error ?? 0;
     goto(`/rumble/${roomId}`);
   };
