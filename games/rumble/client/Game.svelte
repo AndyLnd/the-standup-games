@@ -6,8 +6,12 @@
     size,
     getRadius,
     worldSize,
+    gameState,
+    sessionId,
+    playerR,
   } from "./rumbleStore";
   import Stars from "./Stars.svelte";
+  import { GameState } from "rumble/server/schema/Rumble";
 </script>
 
 <svelte:body
@@ -36,13 +40,25 @@
   />
   {#each [...$players] as [key, { color, name, x, y, isAlive, charge }] (key)}
     <g class="disc" class:isAlive>
+      {#if $gameState === GameState.CountDown && $sessionId === key}
+        <circle
+          class="highlight"
+          cx={x}
+          cy={y}
+          r={playerR}
+          fill="none"
+          stroke="white"
+          stroke-width=".5px"
+        />
+      {/if}
       <circle
+        class="body"
         cx={x}
         cy={y}
         r={getRadius(charge)}
         fill={color}
         stroke="rgba(0,0,0,.2)"
-        stroke-width="1px"
+        stroke-width=".5px"
       />
       <text {x} {y}>{name}</text>
     </g>
@@ -75,7 +91,24 @@
     filter: none;
   }
 
-  .disc > circle {
+  .body {
     filter: drop-shadow(0.05rem 0.1rem 0.1rem rgba(0, 0, 0, 0.3));
+  }
+  .highlight {
+    transform-box: fill-box;
+    transform-origin: center;
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 0.1rem rgb(244, 239, 211));
+    animation: bounce ease-in-out 0.5s infinite alternate;
+  }
+  @keyframes bounce {
+    from {
+      stroke: rgba(255, 255, 255, 0);
+      transform: scale(1);
+    }
+    to {
+      stroke: rgba(255, 255, 255, 1);
+      transform: scale(2);
+    }
   }
 </style>
