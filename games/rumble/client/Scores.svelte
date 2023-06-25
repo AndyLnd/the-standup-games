@@ -35,7 +35,7 @@
     justify-content: center;
     align-items: center;
     background-color: rgba(0, 0, 0, 0.7);
-    z-index: 2;
+    z-index: 4;
   }
 
   .name {

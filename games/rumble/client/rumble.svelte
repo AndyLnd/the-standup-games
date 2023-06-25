@@ -19,8 +19,13 @@
   import Scores from "./Scores.svelte";
   import ForkMe from "../../../apps/client/src/lib/ForkMe.svelte";
   import CountDown from "./CountDown.svelte";
+  import Controls from "./Controls.svelte";
 
   let loadingError = 0;
+
+  const isMobile =
+    typeof navigator !== "undefined" &&
+    /android|ip(hone|od|ad)/gi.test(navigator.userAgent);
 
   onMount(async () => {
     if (!browser) return;
@@ -66,11 +71,17 @@
   <Lobby {browser} />
 {:else}
   <Game />
-  {#if $gameState === GameState.GameOver}
-    <Scores />
-  {/if}
+
   {#if $gameState === GameState.CountDown}
     <CountDown />
+  {/if}
+
+  {#if isMobile}
+    <Controls />
+  {/if}
+
+  {#if $gameState === GameState.GameOver}
+    <Scores />
   {/if}
 {/if}
 

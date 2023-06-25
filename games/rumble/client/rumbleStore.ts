@@ -8,6 +8,7 @@ import {
 
 import { get, writable, derived } from "svelte/store";
 import { Room } from "colyseus.js";
+import { onDestroy } from "svelte";
 
 export const boardR = 100;
 export const playerR = 10;
@@ -122,14 +123,21 @@ export const handleKeyDown = (code: string) => {
     room.send("kick");
     return;
   }
-  if (allKeys.includes(code)) {
+  if (allKeys.includes(code) && !pressedKeys.has(code)) {
     pressedKeys.add(code);
     updateDir();
   }
 };
 
+export const setKeys = (codes: string[]) => {
+  codes = codes.filter((code) => allKeys.includes(code));
+  pressedKeys.clear();
+  codes.forEach((code) => pressedKeys.add(code));
+  updateDir();
+};
+
 export const handleKeyUp = (code: string) => {
-  if (allKeys.includes(code)) {
+  if (allKeys.includes(code) && pressedKeys.has(code)) {
     pressedKeys.delete(code);
     updateDir();
   }
@@ -156,7 +164,7 @@ export const onFrame = (callback: (dt?: number) => void) => {
 
   loop(16, 0);
 
-  return () => cancelAnimationFrame(frame);
+  onDestroy(() => cancelAnimationFrame(frame));
 };
 
 export const setReady = (ready: boolean) => room.send("setReady", ready);
