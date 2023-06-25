@@ -78,10 +78,10 @@
   }
 
   .kick {
-    bottom: 6vmax;
-    right: 6vmax;
-    width: 10vmax;
-    height: 10vmax;
+    bottom: 6dvmax;
+    right: 6dvmax;
+    width: 10dvmax;
+    height: 10dvmax;
     background: radial-gradient(rgb(192, 111, 111), grey);
   }
 </style>

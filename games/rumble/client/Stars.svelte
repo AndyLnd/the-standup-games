@@ -55,8 +55,8 @@
   canvas {
     object-fit: cover;
     position: absolute;
-    width: 100vw;
-    height: 100vh;
+    width: 100dvw;
+    height: 100dvh;
     left: 0;
     top: 0;
     z-index: 0;

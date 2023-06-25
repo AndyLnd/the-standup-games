@@ -67,8 +67,8 @@
 
 <style>
   svg {
-    max-width: 100vw;
-    max-height: 100vh;
+    max-width: 100dvw;
+    max-height: 100dvh;
     z-index: 1;
   }
 
