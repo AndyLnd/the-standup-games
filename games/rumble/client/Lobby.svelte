@@ -169,6 +169,7 @@
   }
   .setup input:nth-child(2) {
     padding: 0 0.25rem 0 0.2rem;
+    border-radius: 0;
   }
 
   .setup input:nth-child(3) {
