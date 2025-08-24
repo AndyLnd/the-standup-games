@@ -11,6 +11,8 @@
     setName,
     setColor,
     kickPlayer,
+    setGameTime,
+    gameTime,
   } from "./rumbleStore";
   import CopyButton from "./CopyButton.svelte";
 
@@ -36,8 +38,23 @@
 
 <section>
   <h2>Join Game</h2>
-  <h4>{$players.size} {$players.size === 1 ? "player" : "players"}</h4>
-  <CopyButton copyString={window.location.href}>Copy Lobby Link</CopyButton>
+  <div class="invite">
+    <h4>{$players.size} {$players.size === 1 ? "player" : "players"}</h4>
+    <CopyButton copyString={window.location.href}>Copy Game Link</CopyButton>
+  </div>
+  <div class="gameTime">
+    <div>Time Limit: {$gameTime}s</div>
+    {#if $isHost}
+      <input
+        type="range"
+        min={30}
+        max={120}
+        bind:value={$gameTime}
+        on:change={(e) => setGameTime($gameTime)}
+      />
+    {/if}
+  </div>
+
   <div class="setup">
     <div>
       <button
@@ -94,17 +111,15 @@
     justify-content: center;
     align-items: center;
     padding-top: 2rem;
+    gap: 1rem;
   }
   section > * {
     min-width: 400px;
-    margin: 1rem auto;
+    margin: 0;
   }
   h2,
   h4 {
     text-align: center;
-  }
-  h4 {
-    margin-top: -0.5rem;
   }
   .player-list {
     display: flex;
@@ -214,6 +229,25 @@
     padding: unset;
     background-color: black;
     border: 1px solid white;
-    width:32px;
+    width: 32px;
+  }
+  .gameTime {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    margin: 1.5rem auto;
+  }
+  .gameTime div {
+    margin: auto;
+  }
+  .gameTime input {
+    flex-grow: 1;
+  }
+
+  .invite{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
   }
 </style>

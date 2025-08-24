@@ -23,6 +23,7 @@ let room: Room<RumbleState>;
 export const gameState = writable<GameState>(GameState.Lobby);
 export const players = writable<Map<string, Player>>(new Map());
 export const worldSize = writable<number>(boardR);
+export const gameTime = writable<number>(75);
 type Loser = { name: string; color: string };
 export const getLoserList = () =>
   room.state.lost.map<Loser>((l) => JSON.parse(l));
@@ -71,6 +72,7 @@ export const connect = async (
       gameState.set(newState as GameState);
     });
     room.state.listen("worldSize", (newSize) => worldSize.set(newSize));
+    room.state.listen("gameTime", (newGameTime) => gameTime.set(newGameTime));
 
     room.state.players.onAdd = (p: Player, key) => {
       players.update((pWritable) => pWritable.set(key, p));
@@ -172,5 +174,6 @@ export const setName = (name: string) => room.send("setName", name);
 export const setColor = (color: string) => room.send("setColor", color);
 export const start = () => room.send("start");
 export const reset = () => room.send("reset");
+export const setGameTime = (maxTime: number) => room.send("setGameTime", maxTime);
 export const kickPlayer = (playerId: string) =>
   room.send("kickPlayer", playerId);

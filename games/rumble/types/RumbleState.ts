@@ -19,6 +19,7 @@ export class RumbleState extends Schema {
   @type({ map: Player }) public players: MapSchema<Player> =
     new MapSchema<Player>();
   @type("number") public worldSize!: number;
+  @type("number") public gameTime!: number;
   @type("string") public state!: string;
   @type(["string"]) public lost: ArraySchema<string> =
     new ArraySchema<string>();

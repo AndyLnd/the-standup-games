@@ -47,6 +47,7 @@ export enum GameState {
 export class RumbleState extends Schema {
   @type({ map: Player }) players = new MapSchema<Player>();
   @type("number") worldSize: number = 100;
+  @type("number") gameTime: number = 75;
   @type("string") state: GameState = GameState.Lobby;
   @type(["string"]) lost: string[] = [];
   @type("string") hostId: string = "";
@@ -199,6 +200,6 @@ export class RumbleState extends Schema {
     updatePlayersPosition(dt, this.players);
     this.updatePlayersCollision(dt);
     this.updatePlayersAlive();
-    this.worldSize -= (dt / 1000) * (100 / 120);
+    this.worldSize -= (dt / 1000) * (100 / this.gameTime);
   }
 }
