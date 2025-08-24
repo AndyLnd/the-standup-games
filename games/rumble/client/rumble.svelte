@@ -20,6 +20,7 @@
   import ForkMe from "../../../apps/client/src/lib/ForkMe.svelte";
   import CountDown from "./CountDown.svelte";
   import Controls from "./Controls.svelte";
+  import FocusWarning from "./FocusWarning.svelte";
 
   let loadingError = 0;
 
@@ -83,6 +84,9 @@
   {#if $gameState === GameState.GameOver}
     <Scores />
   {/if}
+{/if}
+{#if $gameState === GameState.CountDown || $gameState === GameState.InGame}
+  <FocusWarning/>
 {/if}
 
 <style>
