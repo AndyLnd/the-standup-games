@@ -12,6 +12,7 @@
     setColor,
     kickPlayer,
   } from "./rumbleStore";
+  import CopyButton from "./CopyButton.svelte";
 
   let userName = "";
   let userColor = "";
@@ -36,6 +37,7 @@
 <section>
   <h2>Join Game</h2>
   <h4>{$players.size} {$players.size === 1 ? "player" : "players"}</h4>
+  <CopyButton copyString={window.location.href}>Copy Lobby Link</CopyButton>
   <div class="setup">
     <div>
       <button
@@ -61,7 +63,6 @@
       >{$self?.isReady ? "Wait, wait!" : "Let's go!"}</button
     >
   </div>
-
   <div class="player-list">
     {#each [...$players] as [key, player] (key)}
       <div class="player-wrapper">
@@ -91,6 +92,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
     padding-top: 2rem;
   }
   section > * {
@@ -111,7 +113,7 @@
 
   .player-wrapper {
     display: grid;
-    grid-template-columns: 1fr 36px;
+    grid-template-columns: 1fr auto;
   }
   .player {
     margin: 0.2rem;
@@ -126,8 +128,9 @@
   }
 
   .setup {
-    display: flex;
+    display: grid;
     justify-content: center;
+    grid-template-columns: auto auto 1fr auto;
   }
 
   .setup input {
@@ -176,7 +179,7 @@
     padding-left: 0.25rem;
   }
 
-  .setup button:last-of-type {
+  .setup button:first-of-type {
     border-top-left-radius: 0;
     border-bottom-left-radius: 0;
     width: 5rem;
@@ -211,5 +214,6 @@
     padding: unset;
     background-color: black;
     border: 1px solid white;
+    width:32px;
   }
 </style>
