@@ -1,4 +1,4 @@
-import { Client, Room, ServerError } from "colyseus";
+import { type Client, Room, ServerError } from "colyseus";
 import { GameState, RumbleState } from "./schema/Rumble";
 
 export class RumbleRoom extends Room<RumbleState> {

@@ -149,11 +149,8 @@ export const handleKeyUp = (code: string) => {
 
 export const updatePlayers = (dt: number) => {
   players.update(
-    (ps) =>
-      updatePlayersPosition(dt, updatePlayersAcceleration(ps)) as Map<
-        string,
-        Player
-      >
+    // @ts-expect-error - MapSchema is compatible with Map at runtime
+    (ps) => updatePlayersPosition(dt, updatePlayersAcceleration(ps))
   );
 };
 

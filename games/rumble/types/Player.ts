@@ -5,14 +5,7 @@
 // GENERATED USING @colyseus/schema 1.0.34
 //
 
-import {
-  Schema,
-  type,
-  ArraySchema,
-  MapSchema,
-  SetSchema,
-  DataChange,
-} from "@colyseus/schema";
+import { Schema, type } from "@colyseus/schema";
 
 export class Player extends Schema {
   @type("string") public name!: string;

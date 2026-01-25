@@ -1,12 +1,13 @@
 <script lang="ts">
-  import { Vec } from "utils";
+  import type { Vec } from "utils";
 
-  export let pos: Vec = { x: 0, y: 0 };
-  export let parentPos: Vec = { x: 0, y: 0 };
-  export let target = { x: 0, y: 0 };
-  let pupil: Vec = { x: 0, y: 0 };
+  let {
+    pos = { x: 0, y: 0 },
+    parentPos = { x: 0, y: 0 },
+    target = { x: 0, y: 0 }
+  }: { pos?: Vec; parentPos?: Vec; target?: Vec } = $props();
 
-  let blink = false;
+  let blink = $state(false);
   const initBlink = () => {
     blink = false;
     setTimeout(() => {
@@ -16,13 +17,13 @@
   };
   initBlink();
 
-  $: {
+  let pupil = $derived.by(() => {
     const diffX = target.x - (parentPos.x + pos.x);
     const diffY = target.y - (parentPos.y + pos.y);
     const length = Math.sqrt(diffX ** 2 + diffY ** 2);
     const scale = length > 4 ? length / 4 : 1;
-    pupil = { x: diffX / scale, y: diffY / scale };
-  }
+    return { x: diffX / scale, y: diffY / scale };
+  });
 </script>
 
 <g transform="translate({pos.x} {pos.y})">

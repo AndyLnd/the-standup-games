@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { Vec } from "utils";
-  export let pos: Vec = { x: 0, y: 0 };
-  export let r = 0;
+  import type { Vec } from "utils";
+  let { pos = { x: 0, y: 0 }, r = 0 }: { pos?: Vec; r?: number } = $props();
 </script>
 
 <radialGradient id="ball-gradient" cx="50%" cy="25%" fx="50%" fy="25%">

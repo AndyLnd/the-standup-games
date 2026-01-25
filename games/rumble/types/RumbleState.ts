@@ -5,14 +5,7 @@
 // GENERATED USING @colyseus/schema 1.0.34
 //
 
-import {
-  Schema,
-  type,
-  ArraySchema,
-  MapSchema,
-  SetSchema,
-  DataChange,
-} from "@colyseus/schema";
+import { Schema, type, ArraySchema, MapSchema } from "@colyseus/schema";
 import { Player } from "./Player";
 
 export class RumbleState extends Schema {

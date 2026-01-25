@@ -1,13 +1,14 @@
 <script lang="ts">
-  import { Vec } from "utils";
+  import type { Vec } from "utils";
   import Eye from "./Eye.svelte";
 
-  export let pos: Vec = { x: 0, y: 0 };
-  export let target: Vec = { x: 0, y: 0 };
-  export let color = "";
-  export let isDancing = false;
-
-  export let facingRight = false;
+  let {
+    pos = { x: 0, y: 0 },
+    target = { x: 0, y: 0 },
+    color = "",
+    isDancing = false,
+    facingRight = false
+  }: { pos?: Vec; target?: Vec; color?: string; isDancing?: boolean; facingRight?: boolean } = $props();
 </script>
 
 <radialGradient id="ball-gradient-{color}" cx="50%" cy="25%" r="150%">
