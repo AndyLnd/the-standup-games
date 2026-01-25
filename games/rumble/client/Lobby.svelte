@@ -85,7 +85,7 @@
       <div class="player-wrapper">
         <div class="player" class:playerready={player.isReady}>
           <div class="ready">{player.isReady ? "✅" : "❓"}</div>
-          <div class="color" style="background-color: {player.color}" />
+          <div class="color" style="background-color: {player.color}"></div>
           <div>{player.name}</div>
         </div>
         {#if $isHost && !($self === player)}

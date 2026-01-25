@@ -49,7 +49,7 @@
 
 <svelte:window bind:innerWidth={width} bind:innerHeight={height} />
 
-<canvas bind:this={canvas} {width} {height} />
+<canvas bind:this={canvas} {width} {height}></canvas>
 
 <style>
   canvas {

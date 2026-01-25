@@ -25,6 +25,8 @@
 
 <div
   class="dpad"
+  role="button"
+  tabindex="-1"
   bind:this={dpad}
   on:pointerdown|preventDefault={handleDownEvent}
   on:pointerenter|preventDefault={handleDownEvent}
@@ -35,8 +37,8 @@
   on:dragstart|preventDefault
   on:touchstart|preventDefault
   on:mousedown|preventDefault
-/>
-<div class="kick" on:pointerdown|preventDefault={handleSpace} />
+></div>
+<div class="kick" role="button" tabindex="-1" on:pointerdown|preventDefault={handleSpace}></div>
 
 <style>
   div {

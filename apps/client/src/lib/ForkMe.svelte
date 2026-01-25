@@ -1,4 +1,4 @@
-<a href="https://github.com/AndyLnd/the-standup-games" target="_blank">
+<a href="https://github.com/AndyLnd/the-standup-games" target="_blank" aria-label="View source on GitHub">
   <svg
     class="ribbon"
     xmlns="http://www.w3.org/2000/svg"
