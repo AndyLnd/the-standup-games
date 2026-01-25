@@ -1,17 +1,11 @@
+import adapter from '@sveltejs/adapter-node';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+
 /** @type {import('@sveltejs/kit').Config} */
-
-import preprocess from 'svelte-preprocess';
-import node from '@sveltejs/adapter-node';
-
 const config = {
-  preprocess: [
-    preprocess({
-      preserve: ['ld+json', 'module'],
-      typescript: true,
-    }),
-  ],
+  preprocess: vitePreprocess(),
   kit: {
-    adapter: node(),
+    adapter: adapter(),
   },
 };
 

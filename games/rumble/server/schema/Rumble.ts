@@ -9,7 +9,7 @@ const kickRadius = 0.2;
 const kickPower = 0.1;
 
 export const updatePlayersAcceleration = (
-  players: Map<string, Player | TSPlayer>
+  players: MapSchema<Player | TSPlayer, string >
 ) => {
   players.forEach((p) => {
     if (!p.isAlive || p.accelDirection == null) return;
@@ -23,7 +23,7 @@ export const updatePlayersAcceleration = (
 
 export const updatePlayersPosition = (
   dt: number,
-  players: Map<string, Player | TSPlayer>
+  players: MapSchema<Player | TSPlayer, string>
 ) => {
   players.forEach((p) => {
     p.x += p.vx * dt;

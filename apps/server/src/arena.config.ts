@@ -1,13 +1,10 @@
-import Arena from "@colyseus/arena";
+import config from "@colyseus/tools";
 import { RumbleRoom } from "rumble";
 
-export default Arena({
-  getId: () => "Your Colyseus App",
+export default config({
+  getId: () => "standuprumble",
 
   initializeGameServer: (gameServer) => {
-    /**
-     * Define your room handlers:
-     */
     gameServer.define("rumble", RumbleRoom);
   },
 });

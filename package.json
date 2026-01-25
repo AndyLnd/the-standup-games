@@ -19,14 +19,15 @@
   "devDependencies": {
     "eslint-config-custom": "latest",
     "prettier": "latest",
-    "turbo": "latest"
+    "turbo": "^2.5.6"
   },
   "engines": {
     "npm": ">=7.0.0",
     "node": ">=14.0.0"
   },
   "dependencies": {
-    "colyseus": "^0.14.23"
+    "@colyseus/schema": "^3.0.0",
+    "colyseus": "^0.16.0"
   },
   "packageManager": "npm@8.3.1"
 }

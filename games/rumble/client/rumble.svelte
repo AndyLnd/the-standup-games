@@ -2,7 +2,7 @@
   export let browser: boolean;
   export let roomId: string | undefined = undefined;
   export let goto: (path: string) => void;
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
 
   import {
     connect,
@@ -23,6 +23,7 @@
   import FocusWarning from "./FocusWarning.svelte";
 
   let loadingError = 0;
+  let cleanupFrame: (() => void) | undefined;
 
   const isMobile =
     typeof navigator !== "undefined" &&
@@ -35,16 +36,22 @@
       loadingError = error ?? 0;
     }
     if (!loadingError) {
-      onFrame((dt) => {
+      cleanupFrame = onFrame((dt) => {
         if ($gameState === GameState.InGame) updatePlayers(dt!);
       });
     }
   });
 
+  onDestroy(() => {
+    cleanupFrame?.();
+  });
+
   const hostGame = async () => {
-    const { roomId, error } = await connect(goto);
+    const { roomId: newRoomId, error } = await connect(goto);
     loadingError = error ?? 0;
-    goto(`/rumble/${roomId}`);
+    if (newRoomId) {
+      goto(`/rumble/${newRoomId}`);
+    }
   };
 </script>
 

@@ -7,8 +7,7 @@ import {
 } from "rumble/server/schema/Rumble";
 
 import { get, writable, derived } from "svelte/store";
-import { Room } from "colyseus.js";
-import { onDestroy } from "svelte";
+import { Room, getStateCallbacks } from "colyseus.js";
 
 export const boardR = 100;
 export const playerR = 10;
@@ -67,32 +66,35 @@ export const connect = async (
     });
 
     sessionId.set(room.sessionId);
-    room.state.listen("hostId", (newHostId) => hostId.set(newHostId));
-    room.state.listen("state", (newState) => {
+
+    // Colyseus 0.16: Use getStateCallbacks proxy pattern
+    const $ = getStateCallbacks(room);
+
+    $(room.state).listen("hostId", (newHostId: string) => hostId.set(newHostId));
+    $(room.state).listen("state", (newState: string) => {
       gameState.set(newState as GameState);
     });
-    room.state.listen("worldSize", (newSize) => worldSize.set(newSize));
-    room.state.listen("gameTime", (newGameTime) => gameTime.set(newGameTime));
+    $(room.state).listen("worldSize", (newSize: number) => worldSize.set(newSize));
+    $(room.state).listen("gameTime", (newGameTime: number) => gameTime.set(newGameTime));
 
-    room.state.players.onAdd = (p: Player, key) => {
+    $(room.state).players.onAdd((p: Player, key: string) => {
       players.update((pWritable) => pWritable.set(key, p));
-      p.onChange = (changes) => {
-        changes.forEach(({ field, value }) => {
-          (p as any)[field] = value;
-        });
+      $(p).onChange(() => {
         players.update((pWritable) => pWritable.set(key, p));
-      };
-      p.onRemove = () => {
-        players.update((pWritable) => {
-          pWritable.delete(key);
-          return pWritable;
-        });
-      };
-    };
+      });
+    });
+
+    $(room.state).players.onRemove((_p: Player, key: string) => {
+      players.update((pWritable) => {
+        pWritable.delete(key);
+        return pWritable;
+      });
+    });
   } catch (e: any) {
-    return { error: e.code };
+    console.error("Colyseus connection error:", e);
+    return { error: e.code || 500 };
   }
-  return { roomId: room.id };
+  return { roomId: room.roomId };
 };
 
 const leftKeys = ["KeyA", "ArrowLeft"];
@@ -166,7 +168,8 @@ export const onFrame = (callback: (dt?: number) => void) => {
 
   loop(16, 0);
 
-  onDestroy(() => cancelAnimationFrame(frame));
+  // Return cleanup function instead of using onDestroy
+  return () => cancelAnimationFrame(frame);
 };
 
 export const setReady = (ready: boolean) => room.send("setReady", ready);

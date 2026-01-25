@@ -1,9 +1,9 @@
 <script lang="ts">
   import { page } from '$app/stores';
   import { goto } from '$app/navigation';
-  import { browser } from '$app/env';
+  import { browser } from '$app/environment';
   import Rumble from 'rumble/client';
-  const { roomId } = $page.params;
+  $: roomId = $page.params.roomId;
 </script>
 
 <svelte:component this={Rumble} {browser} {roomId} {goto} />
