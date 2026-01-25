@@ -8,5 +8,6 @@ export class VecSchema extends Schema {
 export class Ball extends Schema {
   @type(VecSchema) p: VecSchema = new VecSchema();
   @type(VecSchema) v: VecSchema = new VecSchema();
-  @type("number") r: number = 0;
+  @type("number") r: number = 8;
+  update(dt: number) {}
 }
