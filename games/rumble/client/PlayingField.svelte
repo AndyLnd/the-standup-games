@@ -1,7 +1,8 @@
-  <script lang="ts">
-    export let worldSize = 0;
-    const height = 6;
-  </script>
+<script lang="ts">
+  import type { Readable } from "svelte/store";
+  let { worldSize }: { worldSize: Readable<number> } = $props();
+  const height = 6;
+</script>
   
   <defs>
     <radialGradient id="board">

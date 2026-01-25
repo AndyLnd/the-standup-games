@@ -1,5 +1,6 @@
 <script>
   import '../app.css';
+  let { children } = $props();
 </script>
 
 <svelte:head>
@@ -7,7 +8,7 @@
 </svelte:head>
 
 <main>
-  <slot />
+  {@render children()}
 </main>
 
 <style>

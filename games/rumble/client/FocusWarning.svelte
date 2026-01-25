@@ -1,13 +1,13 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  let hasFocus = document.hasFocus();
+  let hasFocus = $state(typeof document !== "undefined" ? document.hasFocus() : true);
 
-  onMount(()=>{
+  onMount(() => {
     const intervalId = setInterval(() => {
       hasFocus = document.hasFocus();
     }, 100);
     return () => clearInterval(intervalId);
-  })
+  });
 </script>
 
 

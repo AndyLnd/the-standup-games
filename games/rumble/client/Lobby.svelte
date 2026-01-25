@@ -1,5 +1,4 @@
 <script lang="ts">
-  export let browser = false;
   import { onMount } from "svelte";
   import { getRandomColor, getRandomName } from "utils/randomize";
   import {
@@ -16,8 +15,10 @@
   } from "./rumbleStore";
   import CopyButton from "./CopyButton.svelte";
 
-  let userName = "";
-  let userColor = "";
+  let { browser = false }: { browser?: boolean } = $props();
+
+  let userName = $state("");
+  let userColor = $state("");
 
   onMount(() => {
     if (!browser) return;
@@ -25,15 +26,19 @@
     userColor = localStorage.getItem("userColor") || getRandomColor();
   });
 
-  $: if (userName) {
-    localStorage.setItem("userName", userName);
-    setName(userName);
-  }
+  $effect(() => {
+    if (userName) {
+      localStorage.setItem("userName", userName);
+      setName(userName);
+    }
+  });
 
-  $: if (userColor) {
-    localStorage.setItem("userColor", userColor);
-    setColor(userColor);
-  }
+  $effect(() => {
+    if (userColor) {
+      localStorage.setItem("userColor", userColor);
+      setColor(userColor);
+    }
+  });
 </script>
 
 <section>
@@ -50,7 +55,7 @@
         min={30}
         max={120}
         bind:value={$gameTime}
-        on:change={(e) => setGameTime($gameTime)}
+        onchange={() => setGameTime($gameTime)}
       />
     {/if}
   </div>
@@ -59,7 +64,7 @@
     <div>
       <button
         disabled={$self?.isReady}
-        on:click={() => {
+        onclick={() => {
           userName = getRandomName();
           userColor = getRandomColor();
         }}>🎲</button
@@ -76,7 +81,7 @@
     <button
       disabled={userName.trim().length === 0}
       class:isReady={$self?.isReady}
-      on:click={() => setReady(!$self?.isReady)}
+      onclick={() => setReady(!$self?.isReady)}
       >{$self?.isReady ? "Wait, wait!" : "Let's go!"}</button
     >
   </div>
@@ -89,7 +94,7 @@
           <div>{player.name}</div>
         </div>
         {#if $isHost && !($self === player)}
-          <button class="kick-button" on:click={() => kickPlayer(key)}>
+          <button class="kick-button" onclick={() => kickPlayer(key)}>
             ❌
           </button>
         {/if}
@@ -100,7 +105,7 @@
   {#if $isHost}
     {#if [...$players].some(([_, p]) => !p.isReady)}
       <button disabled>Waiting ...</button>
-    {:else}<button on:click={start}>Start</button>{/if}
+    {:else}<button onclick={start}>Start</button>{/if}
   {/if}
 </section>
 

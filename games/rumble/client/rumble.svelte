@@ -1,7 +1,4 @@
 <script lang="ts">
-  export let browser: boolean;
-  export let roomId: string | undefined = undefined;
-  export let goto: (path: string) => void;
   import { onMount, onDestroy } from "svelte";
 
   import {
@@ -22,7 +19,13 @@
   import Controls from "./Controls.svelte";
   import FocusWarning from "./FocusWarning.svelte";
 
-  let loadingError = 0;
+  let { browser, roomId = undefined, goto }: {
+    browser: boolean;
+    roomId?: string;
+    goto: (path: string) => void;
+  } = $props();
+
+  let loadingError = $state(0);
   let cleanupFrame: (() => void) | undefined;
 
   const isMobile =
@@ -59,7 +62,7 @@
 
 {#if !roomId}
   <section>
-    <button class="host" on:click={() => hostGame()}>Host Game</button>
+    <button class="host" onclick={() => hostGame()}>Host Game</button>
   </section>
 {:else if loadingError}
   <section>
@@ -69,7 +72,7 @@
         : "Sorry, you can't join this round."}
     </p>
     <p>Try hosting a new one.</p>
-    <button class="host" on:click={() => hostGame()}>Host Game</button>
+    <button class="host" onclick={() => hostGame()}>Host Game</button>
   </section>
 {:else if !$self}
   <section>

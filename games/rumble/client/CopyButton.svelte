@@ -1,6 +1,9 @@
 <script lang="ts">
-  let isDone = false;
-  export let copyString = "";
+  import type { Snippet } from "svelte";
+
+  let { copyString = "", children }: { copyString?: string; children: Snippet } = $props();
+  let isDone = $state(false);
+
   const copyToClipboard = async () => {
     const { state } = await navigator.permissions.query({
       name: "clipboard-write" as PermissionName,
@@ -12,7 +15,7 @@
   };
 </script>
 
-<button on:click={copyToClipboard} class:isDone on:animationend={()=>isDone = false}><slot /></button>
+<button onclick={copyToClipboard} class:isDone onanimationend={() => isDone = false}>{@render children()}</button>
 
 <style>
   button {

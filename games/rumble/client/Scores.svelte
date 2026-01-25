@@ -19,7 +19,7 @@
     </div>
   {/each}
   {#if $isHost}
-    <button on:click={reset}>Again!</button>
+    <button onclick={reset}>Again!</button>
   {/if}
 </div>
 

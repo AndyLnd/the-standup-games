@@ -4,4 +4,4 @@
   import Rumble from 'rumble/client';
 </script>
 
-<svelte:component this={Rumble} {browser} {goto} />
+<Rumble {browser} {goto} />

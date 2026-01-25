@@ -3,7 +3,8 @@
   import { goto } from '$app/navigation';
   import { browser } from '$app/environment';
   import Rumble from 'rumble/client';
-  $: roomId = $page.params.roomId;
+
+  let roomId = $derived($page.params.roomId);
 </script>
 
-<svelte:component this={Rumble} {browser} {roomId} {goto} />
+<Rumble {browser} {roomId} {goto} />

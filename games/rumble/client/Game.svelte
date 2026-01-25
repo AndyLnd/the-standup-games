@@ -16,8 +16,8 @@
 </script>
 
 <svelte:body
-  on:keydown={(ev) => handleKeyDown(ev.code)}
-  on:keyup={(ev) => handleKeyUp(ev.code)}
+  onkeydown={(ev) => handleKeyDown(ev.code)}
+  onkeyup={(ev) => handleKeyUp(ev.code)}
 />
 <Stars />
 

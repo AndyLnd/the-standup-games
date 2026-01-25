@@ -1,13 +1,14 @@
 <script lang="ts">
-  let width = 100;
-  let height = 100;
   import { onMount } from "svelte";
 
-  let canvas: HTMLCanvasElement;
+  let width = $state(100);
+  let height = $state(100);
+  let canvas: HTMLCanvasElement | undefined = $state();
   type Star = { x: number; y: number; s: number };
   let stars: Star[] = [];
 
   onMount(() => {
+    if (!canvas) return;
     stars = Array.from({ length: 250 }, () => newStar());
     const ctx = canvas.getContext("2d")!;
     let lastTime = Date.now();
@@ -21,7 +22,7 @@
       const scale = Math.sqrt(width ** 2 + height ** 2) / 1000;
 
       ctx.fillStyle = "#fff";
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas!.width, canvas!.height);
       stars.forEach(({ x, y, s }) => {
         ctx.beginPath();
         ctx.arc(x, y, s * scale, 0, 2 * Math.PI);

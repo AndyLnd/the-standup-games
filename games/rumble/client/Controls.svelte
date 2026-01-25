@@ -1,8 +1,9 @@
 <script lang="ts">
   import { handleKeyDown, setKeys } from "./rumbleStore";
-  let dpad: HTMLDivElement;
+  let dpad: HTMLDivElement | undefined = $state();
 
   const getKeys = (ev: PointerEvent) => {
+    if (!dpad) return [undefined, undefined];
     const x = ev.offsetX / dpad.offsetWidth;
     const y = ev.offsetY / dpad.offsetHeight;
     const low = 0.33;
@@ -13,14 +14,22 @@
   };
 
   const handleDownEvent = (ev: PointerEvent) => {
+    ev.preventDefault();
     if (!ev.buttons) return;
 
     const keys = getKeys(ev).filter(Boolean) as string[];
     setKeys(keys);
   };
 
-  const unpressAll = () => setKeys([]);
-  const handleSpace = () => handleKeyDown("Space");
+  const unpressAll = (ev: Event) => {
+    ev.preventDefault();
+    setKeys([]);
+  };
+  const handleSpace = (ev: Event) => {
+    ev.preventDefault();
+    handleKeyDown("Space");
+  };
+  const prevent = (ev: Event) => ev.preventDefault();
 </script>
 
 <div
@@ -28,17 +37,17 @@
   role="button"
   tabindex="-1"
   bind:this={dpad}
-  on:pointerdown|preventDefault={handleDownEvent}
-  on:pointerenter|preventDefault={handleDownEvent}
-  on:pointermove|preventDefault={handleDownEvent}
-  on:pointerup|preventDefault={unpressAll}
-  on:pointerleave|preventDefault={unpressAll}
-  on:pointercancel|preventDefault={unpressAll}
-  on:dragstart|preventDefault
-  on:touchstart|preventDefault
-  on:mousedown|preventDefault
+  onpointerdown={handleDownEvent}
+  onpointerenter={handleDownEvent}
+  onpointermove={handleDownEvent}
+  onpointerup={unpressAll}
+  onpointerleave={unpressAll}
+  onpointercancel={unpressAll}
+  ondragstart={prevent}
+  ontouchstart={prevent}
+  onmousedown={prevent}
 ></div>
-<div class="kick" role="button" tabindex="-1" on:pointerdown|preventDefault={handleSpace}></div>
+<div class="kick" role="button" tabindex="-1" onpointerdown={handleSpace}></div>
 
 <style>
   div {
