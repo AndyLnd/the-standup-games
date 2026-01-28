@@ -10,7 +10,7 @@
   {#if $game.gameOver}
     <g class="spin">
       <text x={400} y={300}>
-        <tspan on:click={startGame} text-anchor="middle">🏐</tspan>
+        <tspan onclick={startGame} text-anchor="middle">🏐</tspan>
       </text>
     </g>
   {:else}

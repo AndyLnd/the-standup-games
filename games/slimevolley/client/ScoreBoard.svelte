@@ -1,13 +1,15 @@
-<script>
-  export let toLeft = false;
-  export let maxScore = 5;
-  export let score = 0;
-  export let x = 0;
-  export let y = 0;
+<script lang="ts">
+  let {
+    toLeft = false,
+    maxScore = 5,
+    score = 0,
+    x = 0,
+    y = 0
+  }: { toLeft?: boolean; maxScore?: number; score?: number; x?: number; y?: number } = $props();
 
-  $: points = Array.from({ length: maxScore }, (_, i) =>
+  let points = $derived(Array.from({ length: maxScore }, (_, i) =>
     toLeft ? i >= maxScore - score : i < score
-  );
+  ));
 </script>
 
 {#each points as point, i}

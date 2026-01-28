@@ -1,5 +1,5 @@
 <script lang="ts">
-  export let height: number = 20;
+  let { height = 20 }: { height?: number } = $props();
 </script>
 
 <linearGradient id="floor-gradient" x2="0" y2="1">

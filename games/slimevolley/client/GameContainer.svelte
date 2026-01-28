@@ -1,10 +1,10 @@
 <script lang="ts">
-  export let width = 800;
-  export let height = 600;
+  import type { Snippet } from "svelte";
+  let { width = 800, height = 600, children }: { width?: number; height?: number; children?: Snippet } = $props();
 </script>
 
 <svg viewBox="0 0 {width} {height}" {width} {height}>
-  <slot />
+  {@render children?.()}
 </svg>
 
 <style>
