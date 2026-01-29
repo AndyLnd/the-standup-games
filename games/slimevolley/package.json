@@ -5,9 +5,10 @@
   "main": "server/index.ts",
   "files": [
     "server/*",
+    "client/*",
     "types/*"
   ],
   "scripts": {
-    "generate-types": "schema-codegen server/schema/Rumble.ts --output types/ --ts"
+    "generate-types": "schema-codegen server/schema/SlimeVolley.ts --output types/ --ts"
   }
 }
