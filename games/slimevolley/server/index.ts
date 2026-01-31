@@ -49,7 +49,7 @@ export class SlimeVolleyRoom extends Room<SlimeVolleyState> {
       }
     });
 
-    this.setSimulationInterval(() => this.update());
+    this.setSimulationInterval((dt) => this.update(dt));
   }
 
   onAuth() {
@@ -74,7 +74,7 @@ export class SlimeVolleyRoom extends Room<SlimeVolleyState> {
     }
   }
 
-  update() {
-    this.state.update();
+  update(dt: number) {
+    this.state.update(dt);
   }
 }

@@ -142,15 +142,15 @@ export class SlimeVolleyState extends Schema {
     }, 800);
   }
 
-  update() {
+  update(dt: number) {
     if (this.state !== GameState.InGame) return;
 
     // Update players
-    this.players.forEach((player) => player.update());
+    this.players.forEach((player) => player.update(dt));
 
     // Update ball with slime physics objects
     const slimes = [...this.players.values()].map((p) => p.asPhysicsObject());
-    const hitFloor = this.ball.update(slimes);
+    const hitFloor = this.ball.update(slimes, dt);
 
     if (hitFloor && this.ballIsHot) {
       this.handleGoal(this.ball.p.x);

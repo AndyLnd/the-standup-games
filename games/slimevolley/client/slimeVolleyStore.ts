@@ -7,12 +7,14 @@ import {
   NET,
   SLIME_RADIUS,
   SLIME_SPEED,
-  SLIME_GRAVITY,
   SLIME_JUMP,
-  BALL_GRAVITY,
-  doBallSlimeCollide,
-  resolveBallCollision,
+  updatePlayerPhysics,
+  updateBallPhysics,
+  interpolateState,
+  INTERPOLATION_FACTOR,
   type PhysicsObject,
+  type PlayerState,
+  type BallState,
 } from "slimevolley/server/physics";
 
 import { get, writable, derived } from "svelte/store";
@@ -95,99 +97,71 @@ const applyLocalJump = () => {
   }
 };
 
-// Player physics update with optional move direction override
-const updatePlayerPhysics = (player: PlayerData, moveDir?: number) => {
-  // Apply movement if direction provided (local prediction)
-  if (moveDir !== undefined) {
-    player.v.x = moveDir * SLIME_SPEED;
-  }
+// Track last frame time for dt calculation
+let lastFrameTime = 0;
 
-  // Apply gravity if in air
-  const isFloored = player.p.y >= FLOOR_Y;
-  if (!isFloored) {
-    player.v.y += SLIME_GRAVITY;
-  }
+// Client-side physics simulation (players + ball, using shared physics functions)
+const runClientSimulation = (currentTime: number) => {
+  // Calculate delta time
+  const dt = lastFrameTime === 0 ? 16.67 : currentTime - lastFrameTime;
+  lastFrameTime = currentTime;
 
-  // Update position
-  player.p.x += player.v.x;
-  player.p.y += player.v.y;
-
-  // Clamp horizontal position to bounds
-  const minX = player.side === "left" ? SLIME_RADIUS : NET.x2 + SLIME_RADIUS;
-  const maxX = player.side === "left" ? NET.x - SLIME_RADIUS : ARENA_WIDTH - SLIME_RADIUS;
-  player.p.x = Math.max(minX, Math.min(maxX, player.p.x));
-
-  // Clamp to floor
-  if (player.p.y > FLOOR_Y) {
-    player.p.y = FLOOR_Y;
-    player.v.y = 0;
-  }
-};
-
-// Client-side physics simulation (players + ball, using server-synced velocities)
-const runClientSimulation = () => {
   const currentState = get(gameState);
   if (currentState !== GameState.InGame) {
+    simulationFrameId = requestAnimationFrame(runClientSimulation);
     return;
   }
 
   const $players = get(players);
   const $ball = get(ball);
-
-  // Update all players with physics
   const $sessionId = get(sessionId);
+
+  // Update all players with shared physics
   const newPlayerMap = new Map($players);
   for (const [key, player] of newPlayerMap) {
     // Use local move direction for local player, infer from velocity for others
-    const moveDir = key === $sessionId ? localMoveDirection : player.v.x / SLIME_SPEED;
-    updatePlayerPhysics(player, moveDir);
+    const moveDir = key === $sessionId ? localMoveDirection : Math.round(player.v.x / SLIME_SPEED);
+
+    // Create PlayerState for shared physics function
+    const state: PlayerState = {
+      p: { x: player.p.x, y: player.p.y },
+      v: { x: player.v.x, y: player.v.y },
+      r: player.r,
+      side: player.side,
+    };
+
+    updatePlayerPhysics(state, moveDir, false, dt);
+
+    // Copy back
+    player.p.x = state.p.x;
+    player.p.y = state.p.y;
+    player.v.x = state.v.x;
+    player.v.y = state.v.y;
   }
   players.set(newPlayerMap);
 
-  // Ball prediction with physics
-  const newBall = {
-    ...$ball,
-    p: { x: $ball.p.x + $ball.v.x, y: $ball.p.y + $ball.v.y },
-    v: { x: $ball.v.x, y: $ball.v.y + BALL_GRAVITY },
+  // Update ball with shared physics (includes net collision!)
+  const slimes: PhysicsObject[] = [...$players.values()].map(toPhysicsObject);
+  const ballState: BallState = {
+    p: { x: $ball.p.x, y: $ball.p.y },
+    v: { x: $ball.v.x, y: $ball.v.y },
+    r: $ball.r,
   };
 
-  // Check ball-slime collisions (predict locally)
-  const ballObj: PhysicsObject = { p: newBall.p, v: newBall.v, r: newBall.r };
-  for (const player of $players.values()) {
-    const slimeObj = toPhysicsObject(player);
-    if (doBallSlimeCollide(ballObj, slimeObj)) {
-      const result = resolveBallCollision(ballObj, slimeObj);
-      newBall.p = result.p;
-      newBall.v = result.v;
-      ballObj.p = result.p;
-      ballObj.v = result.v;
-    }
-  }
+  updateBallPhysics(ballState, slimes, dt);
 
-  // Basic bounds clamping for ball
-  if (newBall.p.x - newBall.r < 0) {
-    newBall.p.x = newBall.r;
-    newBall.v.x = -newBall.v.x * 0.95;
-  } else if (newBall.p.x + newBall.r > ARENA_WIDTH) {
-    newBall.p.x = ARENA_WIDTH - newBall.r;
-    newBall.v.x = -newBall.v.x * 0.95;
-  }
-  if (newBall.p.y - newBall.r < 0) {
-    newBall.p.y = newBall.r;
-    newBall.v.y = -newBall.v.y * 0.95;
-  }
-  if (newBall.p.y + newBall.r > FLOOR_Y) {
-    newBall.p.y = FLOOR_Y - newBall.r;
-    newBall.v.y = -newBall.v.y * 0.95;
-  }
-
-  ball.set(newBall);
+  ball.set({
+    p: ballState.p,
+    v: ballState.v,
+    r: ballState.r,
+  });
 
   simulationFrameId = requestAnimationFrame(runClientSimulation);
 };
 
 const startClientSimulation = () => {
   if (simulationFrameId === null) {
+    lastFrameTime = 0; // Reset for fresh dt calculation
     simulationFrameId = requestAnimationFrame(runClientSimulation);
   }
 };
@@ -270,11 +244,28 @@ export const connect = async (
     // Listen to ball changes - set up after initial state sync
     const updateBall = () => {
       if (room.state.ball?.p) {
-        // Sync authoritative state from server (including velocity for prediction)
-        ball.set({
+        const serverBall = {
           p: { x: room.state.ball.p.x, y: room.state.ball.p.y },
           v: { x: room.state.ball.v.x, y: room.state.ball.v.y },
-          r: room.state.ball.r,
+        };
+
+        ball.update((current) => {
+          // Calculate distance to server position
+          const dx = serverBall.p.x - current.p.x;
+          const dy = serverBall.p.y - current.p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          // If distance is large (ball reset/teleport), snap directly
+          // Otherwise interpolate for smooth corrections
+          if (dist > 100) {
+            current.p.x = serverBall.p.x;
+            current.p.y = serverBall.p.y;
+            current.v.x = serverBall.v.x;
+            current.v.y = serverBall.v.y;
+          } else {
+            interpolateState(current, serverBall, INTERPOLATION_FACTOR);
+          }
+          return { ...current, r: room.state.ball.r };
         });
       }
     };
@@ -299,7 +290,34 @@ export const connect = async (
     // Player collection callbacks
     $(room.state).players.onAdd((p: Player, key: string) => {
       const syncPlayer = () => {
-        players.update((map) => new Map(map).set(key, clonePlayerData(p)));
+        players.update((map) => {
+          const newMap = new Map(map);
+          const existing = newMap.get(key);
+          const serverData = clonePlayerData(p);
+
+          // For remote players during gameplay, interpolate position for smooth movement
+          // For local player or outside gameplay, use direct sync
+          const isLocalPlayer = key === room.sessionId;
+          const inGame = get(gameState) === GameState.InGame;
+
+          if (existing && !isLocalPlayer && inGame) {
+            // Interpolate remote player towards server state
+            interpolateState(existing, serverData, INTERPOLATION_FACTOR);
+            // Copy non-physics properties directly
+            existing.name = serverData.name;
+            existing.color = serverData.color;
+            existing.isReady = serverData.isReady;
+            existing.side = serverData.side;
+            existing.isDancing = serverData.isDancing;
+            existing.score = serverData.score;
+            newMap.set(key, existing);
+          } else {
+            // Direct sync for local player or outside gameplay
+            newMap.set(key, serverData);
+          }
+
+          return newMap;
+        });
       };
       syncPlayer();
       $(p).onChange(syncPlayer);

@@ -2,11 +2,8 @@ import { Schema, type } from "@colyseus/schema";
 import { VecSchema } from "./Ball";
 import {
   SLIME_RADIUS,
-  SLIME_GRAVITY,
-  SLIME_SPEED,
-  SLIME_JUMP,
   FLOOR_Y,
-  NET,
+  updatePlayerPhysics,
   type PhysicsObject,
 } from "../physics";
 
@@ -48,14 +45,6 @@ export class Player extends Schema {
     return this.p.y >= FLOOR_Y;
   }
 
-  get minX(): number {
-    return this.side === "left" ? this.r : NET.x2 + this.r;
-  }
-
-  get maxX(): number {
-    return this.side === "left" ? NET.x - this.r : 800 - this.r;
-  }
-
   setMove(direction: number) {
     this.moveDirection = direction;
   }
@@ -64,37 +53,23 @@ export class Player extends Schema {
     this.wantsToJump = true;
   }
 
-  update() {
-    // Apply horizontal movement
-    this.v.x = this.moveDirection * SLIME_SPEED;
+  update(dt: number) {
+    // Use shared physics function
+    const state = {
+      p: { x: this.p.x, y: this.p.y },
+      v: { x: this.v.x, y: this.v.y },
+      r: this.r,
+      side: this.side as "left" | "right",
+    };
 
-    // Apply jump if on floor and wants to jump
-    if (this.isFloored && this.wantsToJump) {
-      this.v.y = SLIME_JUMP;
-    }
+    updatePlayerPhysics(state, this.moveDirection, this.wantsToJump, dt);
     this.wantsToJump = false;
 
-    // Apply gravity if in air
-    if (!this.isFloored) {
-      this.v.y += SLIME_GRAVITY;
-    }
-
-    // Update position
-    this.p.x += this.v.x;
-    this.p.y += this.v.y;
-
-    // Clamp horizontal position to bounds
-    if (this.p.x < this.minX) {
-      this.p.x = this.minX;
-    } else if (this.p.x > this.maxX) {
-      this.p.x = this.maxX;
-    }
-
-    // Clamp to floor
-    if (this.p.y > FLOOR_Y) {
-      this.p.y = FLOOR_Y;
-      this.v.y = 0;
-    }
+    // Copy back to schema
+    this.p.x = state.p.x;
+    this.p.y = state.p.y;
+    this.v.x = state.v.x;
+    this.v.y = state.v.y;
   }
 
   asPhysicsObject(): PhysicsObject {

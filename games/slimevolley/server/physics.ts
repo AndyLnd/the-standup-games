@@ -118,6 +118,11 @@ export const NET = {
   height: 70,
 };
 
+// Base timestep (60 FPS = 16.67ms)
+export const BASE_DT = 1000 / 60;
+
+// Physics constants normalized to BASE_DT (per-frame at 60 FPS)
+// These are the "per frame" values that get scaled by dt/BASE_DT
 export const BALL_RADIUS = 20;
 export const BALL_GRAVITY = 0.5;
 export const BALL_DAMPENING = 0.95;
@@ -136,3 +141,194 @@ export const LEFT_SLIME_START = { x: 200, y: FLOOR_Y };
 export const RIGHT_SLIME_START = { x: 600, y: FLOOR_Y };
 export const BALL_START_LEFT = { x: 200, y: 200 };
 export const BALL_START_RIGHT = { x: 600, y: 200 };
+
+// Interpolation factor for smoothing server corrections (0-1, higher = faster snap)
+export const INTERPOLATION_FACTOR = 0.3;
+
+// =============================================================================
+// SHARED PHYSICS FUNCTIONS (used by both server and client)
+// =============================================================================
+
+export interface PlayerState {
+  p: Vec;
+  v: Vec;
+  r: number;
+  side: "left" | "right";
+}
+
+export interface BallState {
+  p: Vec;
+  v: Vec;
+  r: number;
+}
+
+/**
+ * Update player physics for one frame
+ * @param player - Player state to update (mutated in place)
+ * @param moveDirection - -1, 0, or 1 for movement
+ * @param wantsToJump - Whether player wants to jump this frame
+ * @param dt - Delta time in milliseconds
+ * @returns Whether the player jumped this frame
+ */
+export function updatePlayerPhysics(
+  player: PlayerState,
+  moveDirection: number,
+  wantsToJump: boolean,
+  dt: number
+): boolean {
+  const scale = dt / BASE_DT;
+  let didJump = false;
+
+  // Apply horizontal movement (instant, not scaled by dt)
+  player.v.x = moveDirection * SLIME_SPEED;
+
+  // Check if on floor
+  const isFloored = player.p.y >= FLOOR_Y;
+
+  // Apply jump if on floor and wants to jump
+  if (isFloored && wantsToJump) {
+    player.v.y = SLIME_JUMP;
+    didJump = true;
+  }
+
+  // Apply gravity if in air (scaled by dt)
+  if (!isFloored) {
+    player.v.y += SLIME_GRAVITY * scale;
+  }
+
+  // Update position (scaled by dt)
+  player.p.x += player.v.x * scale;
+  player.p.y += player.v.y * scale;
+
+  // Clamp horizontal position to bounds
+  const minX = player.side === "left" ? player.r : NET.x2 + player.r;
+  const maxX = player.side === "left" ? NET.x - player.r : ARENA_WIDTH - player.r;
+  if (player.p.x < minX) {
+    player.p.x = minX;
+  } else if (player.p.x > maxX) {
+    player.p.x = maxX;
+  }
+
+  // Clamp to floor
+  if (player.p.y > FLOOR_Y) {
+    player.p.y = FLOOR_Y;
+    player.v.y = 0;
+  }
+
+  return didJump;
+}
+
+/**
+ * Update ball physics for one frame
+ * @param ball - Ball state to update (mutated in place)
+ * @param slimes - Array of slime physics objects for collision
+ * @param dt - Delta time in milliseconds
+ * @returns true if ball hit the floor (goal scored)
+ */
+export function updateBallPhysics(
+  ball: BallState,
+  slimes: PhysicsObject[],
+  dt: number
+): boolean {
+  const scale = dt / BASE_DT;
+
+  // Apply gravity (scaled by dt)
+  ball.v.y += BALL_GRAVITY * scale;
+
+  // Update position (scaled by dt)
+  ball.p.x += ball.v.x * scale;
+  ball.p.y += ball.v.y * scale;
+
+  let didCollide = false;
+
+  // Check slime collisions
+  for (const slime of slimes) {
+    if (doBallSlimeCollide({ p: ball.p, v: ball.v, r: ball.r }, slime)) {
+      const result = resolveBallCollision({ p: ball.p, v: ball.v, r: ball.r }, slime);
+      ball.p.x = result.p.x;
+      ball.p.y = result.p.y;
+      ball.v.x = result.v.x;
+      ball.v.y = result.v.y;
+      didCollide = true;
+    }
+  }
+
+  // Check net collision
+  const netCollision = checkWallCollision({ p: ball.p, v: ball.v, r: ball.r }, NET);
+  if (netCollision !== Direction.None) {
+    if (netCollision === Direction.Left) {
+      ball.p.x = NET.x - ball.r;
+      // Ensure velocity points away from net (to the left)
+      ball.v.x = -Math.abs(ball.v.x) * BALL_DAMPENING;
+      didCollide = true;
+    } else if (netCollision === Direction.Right) {
+      ball.p.x = NET.x2 + ball.r;
+      // Ensure velocity points away from net (to the right)
+      ball.v.x = Math.abs(ball.v.x) * BALL_DAMPENING;
+      didCollide = true;
+    } else if (netCollision === Direction.Up) {
+      ball.p.y = NET.y - ball.r;
+      // Ensure velocity points away from net (upward)
+      ball.v.y = -Math.abs(ball.v.y) * BALL_DAMPENING;
+      didCollide = true;
+    }
+  }
+
+  // Check left/right walls
+  if (ball.p.x - ball.r < 0) {
+    ball.p.x = ball.r;
+    ball.v.x = -ball.v.x * BALL_DAMPENING;
+    didCollide = true;
+  } else if (ball.p.x + ball.r > ARENA_WIDTH) {
+    ball.p.x = ARENA_WIDTH - ball.r;
+    ball.v.x = -ball.v.x * BALL_DAMPENING;
+    didCollide = true;
+  }
+
+  // Check ceiling
+  if (ball.p.y - ball.r < 0) {
+    ball.p.y = ball.r;
+    ball.v.y = -ball.v.y * BALL_DAMPENING;
+    didCollide = true;
+  }
+
+  // Check floor - returns true to signal goal
+  if (ball.p.y + ball.r >= FLOOR_Y) {
+    ball.p.y = FLOOR_Y - ball.r;
+    ball.v.y = -ball.v.y * BALL_DAMPENING;
+    return true; // Ball hit floor
+  }
+
+  // Clamp max speed on collision
+  if (didCollide) {
+    const speed = Math.sqrt(ball.v.x ** 2 + ball.v.y ** 2);
+    if (speed > BALL_MAX_SPEED) {
+      const clampScale = BALL_MAX_SPEED / speed;
+      ball.v.x *= clampScale;
+      ball.v.y *= clampScale;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Interpolate between two values
+ */
+export function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
+/**
+ * Interpolate a physics object towards a target state
+ */
+export function interpolateState(
+  current: { p: Vec; v: Vec },
+  target: { p: Vec; v: Vec },
+  factor: number
+): void {
+  current.p.x = lerp(current.p.x, target.p.x, factor);
+  current.p.y = lerp(current.p.y, target.p.y, factor);
+  current.v.x = lerp(current.v.x, target.v.x, factor);
+  current.v.y = lerp(current.v.y, target.v.y, factor);
+}
