@@ -6,11 +6,11 @@ Multiplayer real-time game platform for team standups and remote team building.
 
 ## Tech Stack
 
-- **Frontend**: SvelteKit 2 + Svelte 4 + TypeScript + Vite
-- **Backend**: Express + Colyseus 0.16 (WebSocket multiplayer framework)
+- **Frontend**: SvelteKit 2 + Svelte 5 (Runes) + TypeScript + Vite 7
+- **Backend**: Express 5 + Colyseus 0.16 (WebSocket multiplayer framework)
 - **State Sync**: @colyseus/schema 3.x (binary serialization)
 - **Monorepo**: npm workspaces + Turborepo
-- **Deployment**: Docker (Node 18-alpine)
+- **Deployment**: Docker (Node 22-alpine)
 
 ## Project Structure
 
@@ -98,11 +98,18 @@ $(room.state).listen("worldSize", (newSize) => {
 ### Rumble (Production)
 - Battle royale: players pushed to center by shrinking boundary
 - Controls: WASD/arrows to move, Space to kick
-- States: Lobby → CountDown → InGame → GameOver
+- States: Lobby → CountDown (3s) → InGame → GameOver
+- Features: Host controls, player name/color customization, adjustable game time (default 75s)
+- Reconnection window: 2 seconds
 
-### SlimeVolley (In Development)
+### SlimeVolley (Playable)
 - 2-player volleyball with slime characters
-- Ball physics with gravity and collision
+- Ball physics with gravity, collision detection, elastic bouncing
+- Controls: Arrow keys or touch buttons for movement + jump
+- States: Lobby → InGame → GameOver
+- Score to win: 5 points
+- Physics: Ball gravity 0.5, slime gravity 0.7, interpolation factor 0.3
+- Reconnection window: 15 seconds
 
 ## Key Files
 
@@ -114,10 +121,11 @@ $(room.state).listen("worldSize", (newSize) => {
 
 ## Environment
 
-- Node 18.13+
+- Node 22+ (Docker uses node:22-alpine)
 - npm 8.3.1+
 - WebSocket port: 2567 (dev), 443 (prod)
 - Frontend port: 5173 (dev), 80 (prod)
+- Environment variables: `PORT_WS`, `VITE_PORT_WS` for WebSocket configuration
 
 ## Code Style
 
@@ -125,6 +133,34 @@ $(room.state).listen("worldSize", (newSize) => {
 - Experimental decorators enabled (for @colyseus/schema)
 - Prettier for formatting
 - ESLint with custom config
+
+## Svelte 5 Patterns
+
+This project uses Svelte 5 with the new Runes syntax:
+
+```svelte
+<script lang="ts">
+  // Reactive state with $state rune
+  let count = $state(0);
+
+  // Derived values with $derived rune
+  let doubled = $derived(count * 2);
+
+  // Props with $props rune
+  let { player, onKick } = $props<{ player: Player; onKick: () => void }>();
+
+  // Side effects with $effect rune
+  $effect(() => {
+    console.log('count changed:', count);
+  });
+</script>
+```
+
+Key differences from Svelte 4:
+- `let x = $state(value)` replaces `let x = value` for reactive variables
+- `$derived(expr)` replaces `$: x = expr` for computed values
+- `$effect(() => {...})` replaces `$: {...}` for side effects
+- `$props()` replaces `export let` for component props
 
 ## SvelteKit Routing
 
@@ -135,3 +171,7 @@ SvelteKit 2 uses file-based routing with the `+` prefix convention:
 - `[param]/+page.svelte` - Dynamic routes
 
 Example: `/rumble/[roomId]` maps to `src/routes/rumble/[roomId]/+page.svelte`
+
+---
+
+> **Note**: Keep this file updated when making significant changes to the project architecture, dependencies, or adding new games.
