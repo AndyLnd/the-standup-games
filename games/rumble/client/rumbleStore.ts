@@ -23,6 +23,7 @@ export const gameState = writable<GameState>(GameState.Lobby);
 export const players = writable<Map<string, Player>>(new Map());
 export const worldSize = writable<number>(boardR);
 export const gameTime = writable<number>(75);
+export const theme = writable<string>("classic");
 type Loser = { name: string; color: string };
 export const getLoserList = () =>
   room.state.lost.map<Loser>((l) => JSON.parse(l));
@@ -76,6 +77,7 @@ export const connect = async (
     });
     $(room.state).listen("worldSize", (newSize: number) => worldSize.set(newSize));
     $(room.state).listen("gameTime", (newGameTime: number) => gameTime.set(newGameTime));
+    $(room.state).listen("theme", (newTheme: string) => theme.set(newTheme));
 
     $(room.state).players.onAdd((p: Player, key: string) => {
       players.update((pWritable) => pWritable.set(key, p));
@@ -175,5 +177,6 @@ export const setColor = (color: string) => room.send("setColor", color);
 export const start = () => room.send("start");
 export const reset = () => room.send("reset");
 export const setGameTime = (maxTime: number) => room.send("setGameTime", maxTime);
+export const setTheme = (themeValue: string) => room.send("setTheme", themeValue);
 export const kickPlayer = (playerId: string) =>
   room.send("kickPlayer", playerId);

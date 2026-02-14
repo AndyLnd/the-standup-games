@@ -21,8 +21,11 @@
 
       const scale = Math.sqrt(width ** 2 + height ** 2) / 1000;
 
-      ctx.fillStyle = "#fff";
+      // Clear to transparent
       ctx.clearRect(0, 0, canvas!.width, canvas!.height);
+
+      // Draw stars
+      ctx.fillStyle = "#fff";
       stars.forEach(({ x, y, s }) => {
         ctx.beginPath();
         ctx.arc(x, y, s * scale, 0, 2 * Math.PI);

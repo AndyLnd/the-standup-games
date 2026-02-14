@@ -48,6 +48,7 @@ export class RumbleState extends Schema {
   @type({ map: Player }) players = new MapSchema<Player>();
   @type("number") worldSize: number = 100;
   @type("number") gameTime: number = 75;
+  @type("string") theme: string = "classic"; // "ice" | "classic"
   @type("string") state: GameState = GameState.Lobby;
   @type(["string"]) lost: string[] = [];
   @type("string") hostId: string = "";

@@ -37,6 +37,11 @@ export class RumbleRoom extends Room<RumbleState> {
             this.state.gameTime = Number(data);
           }
           break;
+        case "setTheme":
+          if (client.sessionId === this.state.hostId) {
+            this.state.theme = data;
+          }
+          break;
         case "start":
           if (client.sessionId === this.state.hostId) {
             this.state.checkReadyAndStart();

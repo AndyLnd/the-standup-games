@@ -13,6 +13,7 @@ export class RumbleState extends Schema {
     new MapSchema<Player>();
   @type("number") public worldSize!: number;
   @type("number") public gameTime!: number;
+  @type("string") public theme!: string;
   @type("string") public state!: string;
   @type(["string"]) public lost: ArraySchema<string> =
     new ArraySchema<string>();

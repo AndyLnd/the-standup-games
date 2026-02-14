@@ -9,20 +9,31 @@
     gameState,
     sessionId,
     playerR,
+    theme,
   } from "./rumbleStore";
+  import Water from "./Water.svelte";
   import Stars from "./Stars.svelte";
   import { GameState } from "rumble/server/schema/Rumble";
-  import PlayingField from "./PlayingField.svelte";
+  import IcePlayingField from "./IcePlayingField.svelte";
+  import ClassicPlayingField from "./ClassicPlayingField.svelte";
 </script>
 
 <svelte:body
   onkeydown={(ev) => handleKeyDown(ev.code)}
   onkeyup={(ev) => handleKeyUp(ev.code)}
 />
-<Stars />
+{#if $theme === "ice"}
+  <Water worldSize={$worldSize} svgSize={size} />
+{:else}
+  <Stars />
+{/if}
 
 <svg viewBox="{-size / 2} {-size / 2} {size} {size}">
-  <PlayingField {worldSize} />
+  {#if $theme === "ice"}
+    <IcePlayingField worldSize={$worldSize} />
+  {:else}
+    <ClassicPlayingField worldSize={$worldSize} />
+  {/if}
   {#each [...$players] as [key, { color, name, x, y, isAlive, charge }] (key)}
     <g class="disc" class:isAlive>
       {#if $gameState === GameState.CountDown && $sessionId === key}

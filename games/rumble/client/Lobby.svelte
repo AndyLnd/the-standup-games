@@ -12,6 +12,8 @@
     kickPlayer,
     setGameTime,
     gameTime,
+    theme,
+    setTheme,
   } from "./rumbleStore";
   import CopyButton from "./CopyButton.svelte";
 
@@ -57,6 +59,18 @@
         bind:value={$gameTime}
         onchange={() => setGameTime($gameTime)}
       />
+    {/if}
+  </div>
+
+  <div class="theme-selector">
+    <div>Theme:</div>
+    {#if $isHost}
+      <select bind:value={$theme} onchange={() => setTheme($theme)}>
+        <option value="ice">Ice Floe</option>
+        <option value="classic">Classic Space</option>
+      </select>
+    {:else}
+      <div>{$theme === "ice" ? "Ice Floe" : "Classic Space"}</div>
     {/if}
   </div>
 
@@ -247,6 +261,25 @@
   }
   .gameTime input {
     flex-grow: 1;
+  }
+
+  .theme-selector {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    margin: 0.5rem auto;
+  }
+  .theme-selector div {
+    margin: auto;
+  }
+  .theme-selector select {
+    flex-grow: 1;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.2rem;
+    background-color: white;
+    color: black;
+    border: none;
+    cursor: pointer;
   }
 
   .invite{
